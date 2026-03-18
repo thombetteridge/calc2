@@ -9,22 +9,8 @@
 #include <unordered_map>
 #include <vector>
 
-template <typename... Args>
-[[noreturn]] void writeln(Args &&...args)
-{
-  (std::cout << ... << args);
-  std::cout << '\n';
-}
+#include "util.hpp"
 
-template <typename... Args>
-[[noreturn]] void panic(Args &&...args)
-{
-  (std::cerr << ... << args);
-  std::cerr << '\n';
-  std::exit(1);
-}
-
-#define TODO(...) panic(__FILE__, ":", __LINE__, ": TODO: ", __VA_ARGS__)
 
 /* ============= LEXER =========== */
 
@@ -224,7 +210,7 @@ void compile_one(std::vector<Op_Code> &out, Token const &tok)
         value);
 
     if (result.ec != std::errc()) {
-      panic("Malformed number: ", tok.text);
+      Panic{}("Malformed number: ", tok.text);
     }
 
     out.push_back({.kind = Op_Kind::Val, .value = value});
@@ -254,21 +240,21 @@ void compile_one(std::vector<Op_Code> &out, Token const &tok)
     break;
 
   case Tok_Kind::Unknown:
-    panic("Unknown token: ", tok.text);
+    Panic{}("Unknown token: ", tok.text);
 
   case Tok_Kind::Colon:
-    panic("unexpected ':'");
+    Panic{}("unexpected ':'");
 
   case Tok_Kind::Semi:
-    panic("unexpected ';'");
+    Panic{}("unexpected ';'");
 
   case Tok_Kind::Eof:
     break;
 
   case Tok_Kind::LBracket:
-    TODO("");
+    Todo{}("LBracket");
   case Tok_Kind::RBracket:
-    TODO("");
+    Todo{}();
   }
 }
 
@@ -299,7 +285,7 @@ void compile(
       }
 
       if (i >= tokens.size() || tokens[i].kind != Tok_Kind::Semi) {
-        panic("missing ';' after definition of ", name);
+        Panic{}("missing ';' after definition of ", name);
       }
 
       user_words[name] = std::move(body);
