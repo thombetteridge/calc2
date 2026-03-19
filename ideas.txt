@@ -1,0 +1,54 @@
+
+
+:sq dup *; :hypot sq swap sq + sqrt; 3 4 hypot
+
+: sq
+  dup *
+;
+
+: hypot
+  sq swap sq + sqrt
+;
+
+: sq
+  . *
+;
+
+: hypot
+  sq ~ sq + sqrt
+;
+
+
+3 4 hypot
+
+or
+
+:sq . *;
+:hypot sq ~ sq + sqrt;
+
+3 4 hypot
+
+
+we could have
+
+: sq dup *;
+
+: hypot -> a b 
+	(sqrt(sq(a) + sq(b)))
+
+and internally it re-arranges to 
+
+hypot : -> a b ;
+  a sq b sq + sqrt
+;
+
+
+sq pushes one and pops 2 so it's 1.1
+
+we could also count pushes and pops so we know hypot is 2.1
+
+we could call hypot(3,5)
+but hypot(3) would be a parse error
+
+
+SOLVE ( c = sqrt(a^2 + b^2),   (c 5,  b 3,  a ?) )

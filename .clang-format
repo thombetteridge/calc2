@@ -1,0 +1,50 @@
+BasedOnStyle: Webkit
+IndentWidth: 3
+ContinuationIndentWidth: 2
+ColumnLimit: 0
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterClass: false
+    AfterCaseLabel: false
+    AfterControlStatement: false
+    AfterEnum: false
+    AfterFunction: true
+    AfterStruct: false
+    AfterUnion: false
+    BeforeLambdaBody: false
+    BeforeWhile: false
+    BeforeCatch: true
+    BeforeElse: true
+    SplitEmptyFunction: false
+    SplitEmptyRecord: false
+
+IndentCaseBlocks: false
+IndentCaseLabels: false
+
+AllowShortBlocksOnASingleLine: Always
+# AllowShortCaseExpressionOnASingleLine: true
+# AllowShortCaseLabelsOnASingleLine: true
+AllowShortCompoundRequirementOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLambdasOnASingleLine: All
+AllowShortLoopsOnASingleLine: true
+
+UseTab: Never
+
+# BreakAfterReturnType: TopLevelDefinitions
+
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+# AlignConsecutiveShortCaseStatements: true
+AlignTrailingComments: true
+AlignOperands: true
+AlignConsecutiveMacros: true
+AlignAfterOpenBracket: true
+
+InsertBraces: false
+
+QualifierAlignment: Custom
+QualifierOrder: [inline, static, constexpr, type, const]
+
+SpaceBeforeCpp11BracedList: true
