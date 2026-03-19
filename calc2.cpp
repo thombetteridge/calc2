@@ -15,6 +15,15 @@
 
 #include "util.hpp"
 
+/* declutter */
+
+using std::string;
+using std::string_view;
+using std::unordered_map;
+using std::vector;
+
+using namespace std;
+
 /* ============= LEXER =========== */
 
 enum class Tok_Kind {
@@ -35,15 +44,15 @@ enum class Tok_Kind {
 };
 
 struct Token {
-   Tok_Kind         kind;
-   std::string_view text;
+   Tok_Kind    kind;
+   string_view text;
 };
 
 struct Lexer {
-   std::string_view src;
-   size_t           pos;
-   size_t           read_pos;
-   char             ch;
+   string_view src;
+   size_t      pos;
+   size_t      read_pos;
+   char        ch;
 
    void advance()
    {
@@ -92,7 +101,7 @@ static Token lx_new_number(Lexer& lx)
 
    return Token {
       .kind = Tok_Kind::Number,
-      .text = std::string_view(lx.src.data() + start, lx.pos - start),
+      .text = string_view(lx.src.data() + start, lx.pos - start),
    };
 }
 
@@ -106,7 +115,7 @@ static Token lx_new_word(Lexer& lx)
 
    return Token {
       .kind = Tok_Kind::Word,
-      .text = std::string_view(lx.src.data() + start, lx.pos - start),
+      .text = string_view(lx.src.data() + start, lx.pos - start),
    };
 }
 
@@ -114,7 +123,7 @@ static Token lx_new_token(Lexer& lx, Tok_Kind kind)
 {
    Token tok = {
       .kind = kind,
-      .text = std::string_view(lx.src.data() + lx.pos, 1),
+      .text = string_view(lx.src.data() + lx.pos, 1),
    };
    lx.advance();
    return tok;
@@ -127,7 +136,7 @@ Token lx_next_token(Lexer& lx)
    }
    // clang-format off
    switch (lx.ch) {
-   case '\0': return Token { .kind = Tok_Kind::Eof, .text = std::string_view("EOF") };
+   case '\0': return Token { .kind = Tok_Kind::Eof, .text = string_view("EOF") };
    case '+': return lx_new_token(lx, Tok_Kind::Plus);
    case '-': return lx_new_token(lx, Tok_Kind::Minus);
    case '/': return lx_new_token(lx, Tok_Kind::Slash);
@@ -178,9 +187,9 @@ static void print_token(Token const& t)
    // clang-format on
 }
 
-std::vector<Token> src_to_tokens(char const* src)
+vector<Token> src_to_tokens(char const* src)
 {
-   std::vector<Token> result;
+   vector<Token> result;
 
    Lexer lx = {
       .src      = src,
@@ -215,19 +224,19 @@ enum class Op_Kind {
 };
 
 struct Op_Code {
-   Op_Kind     kind;
-   double      value {};
-   std::string text {};
+   Op_Kind kind;
+   double  value {};
+   string  text {};
 };
 
-using User_Words = std::unordered_map<std::string, std::vector<Op_Code>>;
+using User_Words = unordered_map<string, vector<Op_Code>>;
 
-std::unordered_map<std::string_view, Op_Code> intrinsics = {
+unordered_map<string_view, Op_Code> intrinsics = {
    { "dup", Op_Code { .kind = Op_Kind::Dup } },
    { "swap", Op_Code { .kind = Op_Kind::Swap } },
 };
 
-void compile_one(std::vector<Op_Code>& out, Token const& tok)
+void compile_one(vector<Op_Code>& out, Token const& tok)
 {
    switch (tok.kind) {
    case Tok_Kind::Number: {
@@ -250,7 +259,7 @@ void compile_one(std::vector<Op_Code>& out, Token const& tok)
          out.push_back(intrinsics.at(tok.text));
       }
       else {
-         out.push_back({ .kind = Op_Kind::Word, .text = std::string(tok.text) });
+         out.push_back({ .kind = Op_Kind::Word, .text = string(tok.text) });
       }
       break;
 
@@ -276,24 +285,22 @@ void compile_one(std::vector<Op_Code>& out, Token const& tok)
       Panic {}("Unknown token: ", tok.text);
    case Tok_Kind::Colon:
       Panic {}("unexpected ':'");
-
    case Tok_Kind::Semi:
       Panic {}("unexpected ';'");
-
    case Tok_Kind::Eof:
       break;
 
    case Tok_Kind::LBracket:
       Todo {}("LBracket");
    case Tok_Kind::RBracket:
-      Todo {}();
+      Todo {}("RBracket");
    }
 }
 
 void compile(
-  std::vector<Token> const& tokens,
-  std::vector<Op_Code>&     op_codes,
-  User_Words&               user_words)
+  vector<Token> const& tokens,
+  vector<Op_Code>&     op_codes,
+  User_Words&          user_words)
 {
    for (size_t i = 0; i < tokens.size(); ++i) {
       auto const& tok = tokens[i];
@@ -311,7 +318,7 @@ void compile(
          std::string name(tokens[i + 1].text);
          i += 2; /* skip "name :" */
 
-         std::vector<Op_Code> body;
+         vector<Op_Code> body;
          while (i < tokens.size() && tokens[i].kind != Tok_Kind::Semi) {
             compile_one(body, tokens[i]);
             ++i;
@@ -331,7 +338,7 @@ void compile(
 /* ===========  EVAL ============== */
 
 struct Stack {
-   std::vector<double> data;
+   vector<double> data;
 
    double pop()
    {
@@ -372,7 +379,7 @@ struct Stack {
    auto end() { return data.end(); }
 };
 
-using Builtins = std::unordered_map<std::string_view, std::function<void()>>;
+using Builtins = unordered_map<string_view, std::function<void()>>;
 
 struct Program {
    Stack      stack;
@@ -392,7 +399,7 @@ struct Program {
       };
    }
 
-   std::string run(char const* input)
+   string run(char const* input)
    {
       auto toks = src_to_tokens(input);
 
@@ -402,7 +409,7 @@ struct Program {
          print_token(t);
       }
 
-      std::vector<Op_Code> codes;
+      vector<Op_Code> codes;
       compile(toks, codes, user_words);
       eval(codes);
 
@@ -413,7 +420,7 @@ struct Program {
       return result;
    }
 
-   void eval(std::vector<Op_Code> codes)
+   void eval(vector<Op_Code> codes)
    {
       for (auto const& op : codes) {
          switch (op.kind) {
@@ -475,7 +482,9 @@ int main()
 {
    Program prog;
 
-   constexpr auto input = ":sq . *; : hypot sq ~ sq + sqrt ; 3 4 hypot pi ";
+   constexpr auto input = ":sq . *;"
+                          ": hypot sq ~ sq + sqrt ;"
+                          "3 4 hypot ";
 
    std::cout << prog.run(input);
 }
