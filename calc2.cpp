@@ -26,6 +26,8 @@ enum class Tok_Kind {
    Minus,
    Slash,
    Star,
+   Dot,
+   Tilda,
    Colon,
    Semi,
    LBracket,
@@ -132,8 +134,15 @@ Token lx_next_token(Lexer& lx)
    case '*': return lx_new_token(lx, Tok_Kind::Star);
    case ':': return lx_new_token(lx, Tok_Kind::Colon);
    case ';': return lx_new_token(lx, Tok_Kind::Semi);
+   case '~': return lx_new_token(lx, Tok_Kind::Tilda);
    case '[': return lx_new_token(lx, Tok_Kind::LBracket);
    case ']': return lx_new_token(lx, Tok_Kind::RBracket);
+   case '.' : {
+      if (lx.pos + 1 < lx.src.size() && is_digit (lx.src[lx.pos+1]) )
+         return lx_new_number(lx);
+      else
+         return lx_new_token(lx, Tok_Kind::Dot);
+   }
       // clang-format on
    default:
       if (is_digit(lx.ch))
@@ -162,7 +171,10 @@ static void print_token(Token const& t)
    case Tok_Kind::Semi:     writeln("Tok Kind: Semi, Text: ",     t.text); break;
    case Tok_Kind::LBracket: writeln("Tok Kind: LBracket, Text: ", t.text); break;
    case Tok_Kind::RBracket: writeln("Tok Kind: RBracket, Text: ", t.text); break;
+   case Tok_Kind::Dot:      writeln("Tok Kind: Dot, Text: ",      t.text); break;
+   case Tok_Kind::Tilda:    writeln("Tok Kind: Tilda, Text: ",    t.text); break;
    }
+
    // clang-format on
 }
 
@@ -254,10 +266,14 @@ void compile_one(std::vector<Op_Code>& out, Token const& tok)
    case Tok_Kind::Star:
       out.push_back({ .kind = Op_Kind::Mul });
       break;
-
+   case Tok_Kind::Tilda:
+      out.push_back({ .kind = Op_Kind::Swap });
+      break;
+   case Tok_Kind::Dot:
+      out.push_back({ .kind = Op_Kind::Dup });
+      break;
    case Tok_Kind::Unknown:
       Panic {}("Unknown token: ", tok.text);
-
    case Tok_Kind::Colon:
       Panic {}("unexpected ':'");
 
@@ -459,7 +475,7 @@ int main()
 {
    Program prog;
 
-   constexpr auto input = ":sq dup *; : hypot sq swap sq + sqrt ; 3 4 hypot pi ";
+   constexpr auto input = ":sq . *; : hypot sq ~ sq + sqrt ; 3 4 hypot pi ";
 
    std::cout << prog.run(input);
 }
