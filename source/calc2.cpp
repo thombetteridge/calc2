@@ -69,32 +69,32 @@ struct Lexer {
    }
 };
 
-static bool is_white(char c)
+static auto is_white(char c) -> bool
 {
    return c == ' ' || c == '\n' || c == '\t' || c == '\r';
 }
 
-static bool is_alpha(char c)
+static auto is_alpha(char c) -> bool
 {
    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
-static bool is_digit(char c)
+static auto is_digit(char c) -> bool
 {
    return c >= '0' && c <= '9';
 }
 
-static bool is_delim(char c)
+static auto is_delim(char c) -> bool
 {
    return c == ';' || c == ':' || c == '[' || c == ']';
 }
 
-static bool is_operator(char c)
+static auto is_operator(char c) -> bool
 {
    return c == '+' || c == '-' || c == '*' || c == '/';
 }
 
-static Token lx_new_number(Lexer& lx)
+static auto lx_new_number(Lexer& lx) -> Token
 {
    size_t const start = lx.pos;
 
@@ -108,7 +108,7 @@ static Token lx_new_number(Lexer& lx)
    };
 }
 
-static Token lx_new_word(Lexer& lx)
+static auto lx_new_word(Lexer& lx) -> Token
 {
    size_t const start = lx.pos;
 
@@ -122,7 +122,7 @@ static Token lx_new_word(Lexer& lx)
    };
 }
 
-static Token lx_new_token(Lexer& lx, Tok_Kind kind)
+static auto lx_new_token(Lexer& lx, Tok_Kind kind) -> Token
 {
    Token tok = {
       .kind = kind,
@@ -132,7 +132,7 @@ static Token lx_new_token(Lexer& lx, Tok_Kind kind)
    return tok;
 }
 
-static Token lx_new_token2(Lexer& lx, Tok_Kind kind)
+static auto lx_new_token2(Lexer& lx, Tok_Kind kind) -> Token
 {
    Token tok = {
       .kind = kind,
@@ -143,7 +143,7 @@ static Token lx_new_token2(Lexer& lx, Tok_Kind kind)
    return tok;
 }
 
-Token lx_next_token(Lexer& lx)
+auto lx_next_token(Lexer& lx) -> Token
 {
    while (is_white(lx.ch)) {
       lx.advance();
@@ -204,7 +204,7 @@ void print_token(Token const& t)
    // clang-format on
 }
 
-vector<Token> src_to_tokens(char const* src)
+auto src_to_tokens(char const* src) -> vector<Token>
 {
    vector<Token> result;
 
@@ -622,7 +622,7 @@ const Builtins Program::builtins = {
 
 // clang-format on
 
-string run_calc(char const* input)
+auto run_calc(char const* input) -> string
 {
 
    static Program P {};
