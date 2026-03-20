@@ -29,7 +29,8 @@ or
 3 4 hypot
 
 
-we could have
+
+Algebraic idea
 
 : sq dup *;
 
