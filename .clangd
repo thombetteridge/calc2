@@ -1,0 +1,36 @@
+CompileFlags:
+  Add: [
+    -std=c++20,
+    -Wall,
+    -Wextra,
+    -Wpedantic,
+    -Iinclude,
+    -Ithird_party,
+    -Ithird_party/imgui,
+    -Ithird_party/raylib/src,
+    -I../include,
+
+]
+
+Diagnostics:
+  ClangTidy:
+    Add: [
+      modernize-*,
+      performance-*,
+      bugprone-*,
+
+      clang-analyzer-*,
+      portability-*,
+      misc-unused-parameters,
+
+      cppcoreguidelines-*
+    ]
+    Remove: [
+      readability-identifier-length,
+      readability-magic-numbers,
+      cppcoreguidelines-avoid-magic-numbers,
+      cppcoreguidelines-pro-type-vararg
+    ]
+
+Index:
+  Background: Build

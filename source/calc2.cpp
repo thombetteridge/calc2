@@ -1,4 +1,5 @@
 
+#include <algorithm>
 #include <cassert>
 #include <charconv>
 #include <cmath>
@@ -40,6 +41,7 @@ enum class Tok_Kind {
    Tilda,
    Colon,
    Semi,
+   Arrow,
    LBracket,
    RBracket
 };
@@ -130,6 +132,17 @@ static Token lx_new_token(Lexer& lx, Tok_Kind kind)
    return tok;
 }
 
+static Token lx_new_token2(Lexer& lx, Tok_Kind kind)
+{
+   Token tok = {
+      .kind = kind,
+      .text = string_view(lx.src.data() + lx.pos, 2),
+   };
+   lx.advance();
+   lx.advance();
+   return tok;
+}
+
 Token lx_next_token(Lexer& lx)
 {
    while (is_white(lx.ch)) {
@@ -139,7 +152,9 @@ Token lx_next_token(Lexer& lx)
    switch (lx.ch) {
    case '\0': return Token { .kind = Tok_Kind::Eof, .text = string_view("EOF") };
    case '+': return lx_new_token(lx, Tok_Kind::Plus);
-   case '-': return lx_new_token(lx, Tok_Kind::Minus);
+   case '-':
+      if (lx.pos+1 < lx.src.size() && lx.src[lx.pos+1] == '>') return lx_new_token2(lx, Tok_Kind::Arrow);
+      else   return lx_new_token(lx, Tok_Kind::Minus);
    case '/': return lx_new_token(lx, Tok_Kind::Slash);
    case '*': return lx_new_token(lx, Tok_Kind::Star);
    case ':': return lx_new_token(lx, Tok_Kind::Colon);
@@ -165,7 +180,7 @@ Token lx_next_token(Lexer& lx)
    UNREACHABLE();
 }
 
-static void print_token(Token const& t)
+void print_token(Token const& t)
 {
    // clang-format off
    switch (t.kind) {
@@ -183,6 +198,7 @@ static void print_token(Token const& t)
    case Tok_Kind::RBracket: writeln("Tok Kind: RBracket, Text: ", t.text); break;
    case Tok_Kind::Dot:      writeln("Tok Kind: Dot, Text: ",      t.text); break;
    case Tok_Kind::Tilda:    writeln("Tok Kind: Tilda, Text: ",    t.text); break;
+   case Tok_Kind::Arrow:    writeln("Tok Kind: Arrow, Text: ",    t.text); break;
    }
 
    // clang-format on
@@ -221,6 +237,7 @@ enum class Op_Kind {
    Div,
    Dup,
    Swap,
+   Var,
    Eof,
 };
 
@@ -237,18 +254,20 @@ unordered_map<string_view, Op_Code> const intrinsics = {
    { "swap", Op_Code { .kind = Op_Kind::Swap } },
 };
 
-void compile_one(vector<Op_Code>& out, Token const& tok)
+void compile_one(vector<Op_Code>& out, std::vector<Token> const& tokens, size_t& i)
 {
+   auto const& tok = tokens[i];
    switch (tok.kind) {
    case Tok_Kind::Number: {
-      double     value;
+      double     value {};
       auto const result = std::from_chars(
         tok.text.data(),
         tok.text.data() + tok.text.size(),
         value);
 
       if (result.ec != std::errc()) {
-         Panic {}("Malformed number: ", tok.text);
+         // Panic {}("Malformed number: ", tok.text);
+         break;
       }
 
       out.push_back({ .kind = Op_Kind::Val, .value = value });
@@ -269,6 +288,31 @@ void compile_one(vector<Op_Code>& out, Token const& tok)
          break;
       }
 
+   case Tok_Kind::Arrow: {
+      ++i;
+      size_t       count = 0;
+      size_t const start = i;
+      while (i < tokens.size() && tokens[i].kind == Tok_Kind::Word && tokens[i].kind != Tok_Kind::Semi) {
+         ++count;
+         ++i;
+      }
+
+      if (tokens[i].kind != Tok_Kind::Semi) {
+         break;
+      }
+
+      string idents {};
+      for (size_t j = start; j < i + count; ++j) {
+         idents += string(tokens[j].text) + ' ';
+      }
+
+      Op_Code op = { .kind = Op_Kind::Var, .value = static_cast<double>(count), .text = idents };
+
+      writeln("Op ", op.value, op.text);
+
+      out.push_back(op);
+      break;
+   }
    case Tok_Kind::Plus:
       out.push_back({ .kind = Op_Kind::Add });
       break;
@@ -288,17 +332,18 @@ void compile_one(vector<Op_Code>& out, Token const& tok)
       out.push_back({ .kind = Op_Kind::Dup });
       break;
    case Tok_Kind::Unknown:
-      Panic {}("Unknown token: ", tok.text);
+      // Panic {}("Unknown token: ", tok.text);
    case Tok_Kind::Colon:
-      Panic {}("unexpected ':'");
+      // Panic {}("unexpected ':'");
    case Tok_Kind::Semi:
-      Panic {}("unexpected ';'");
+      // Panic {}("unexpected ';'");
    case Tok_Kind::Eof:
       break;
    case Tok_Kind::LBracket:
-      Todo {}("LBracket");
+      // Todo {}("LBracket");
    case Tok_Kind::RBracket:
-      Todo {}("RBracket");
+      // Todo {}("RBracket");
+      break;
    }
 }
 
@@ -317,7 +362,8 @@ void compile(
       /* new user words */
       if (tok.kind == Tok_Kind::Colon) {
          if (i + 1 < tokens.size() && tokens[i + 1].kind != Tok_Kind::Word) {
-            Panic {}("missing word name after ':' ");
+            // Panic {}("missing word name after ':' ");
+            break;
          }
 
          std::string name(tokens[i + 1].text);
@@ -325,19 +371,20 @@ void compile(
 
          vector<Op_Code> body;
          while (i < tokens.size() && tokens[i].kind != Tok_Kind::Semi) {
-            compile_one(body, tokens[i]);
+            compile_one(body, tokens, i);
             ++i;
          }
 
          if (i >= tokens.size() || tokens[i].kind != Tok_Kind::Semi) {
-            Panic {}("missing ';' after definition of ", name);
+            // Panic {}("missing ';' after definition of ", name);
+            break;
          }
 
          user_words[name] = std::move(body);
          continue;
       }
 
-      compile_one(op_codes, tok);
+      compile_one(op_codes, tokens, i);
    }
 }
 /* ===========  EVAL ============== */
@@ -384,38 +431,17 @@ struct Stack {
    auto end() { return data.end(); }
 };
 
-
 struct Program;
 using BuiltinFn = void (*)(Program&);
 using Builtins  = std::unordered_map<std::string, BuiltinFn>;
 
 struct Program {
-   Stack                 stack;
-   User_Words            user_words;
-   static Builtins const builtins;
+   Stack                         stack;
+   User_Words                    user_words;
+   unordered_map<string, double> variables;
+   static Builtins const         builtins;
 
-   string run(char const* input)
-   {
-      auto toks = src_to_tokens(input);
-
-      std::cout << "==Tokens==\n";
-
-      for (auto t : toks) {
-         print_token(t);
-      }
-
-      vector<Op_Code> codes;
-      compile(toks, codes, user_words);
-      eval(codes);
-
-      std::string result;
-      for (auto const value : stack) {
-         result += std::format("{}\n", value);
-      }
-      return result;
-   }
-
-   void eval(vector<Op_Code> codes)
+   void eval(vector<Op_Code> const& codes)
    {
       for (auto const& op : codes) {
          switch (op.kind) {
@@ -502,12 +528,50 @@ struct Program {
             if (user_words.contains(op.text))
                eval(user_words[op.text]);
 
+            if (variables.contains(op.text)) {
+               stack.push(variables[op.text]);
+            }
+
+            break;
+         }
+         case Op_Kind::Var: {
+
+            auto split_string = [](string_view& s, char delim) {
+               string_view result {};
+               auto const  it = std::find(s.begin(), s.end(), delim);
+               if (it != s.end()) {
+                  result = string_view(s.begin(), it);
+                  s      = string_view(it + 1, s.end());
+               }
+               return result;
+            };
+
+            string_view    vars_sv = op.text;
+            vector<string> var_idents;
+
+            while (!vars_sv.empty()) {
+               string_view ident = split_string(vars_sv, ' ');
+               var_idents.emplace_back(ident);
+            }
+            for (auto const& s : var_idents)
+               writeln("ident ", s);
+            auto const num = static_cast<size_t>(op.value);
+            for (size_t i = 0; i < std::min(num, var_idents.size()); ++i) {
+               auto const opt = stack.pop();
+               if (opt)
+                  variables[var_idents[i]] = opt.value();
+            }
             break;
          }
          case Op_Kind::Eof:
             return;
          }
       }
+   }
+
+   void clear_stack()
+   {
+      stack.data.clear();
    }
 };
 
@@ -558,13 +622,28 @@ const Builtins Program::builtins = {
 
 // clang-format on
 
-int main()
+string run_calc(char const* input)
 {
-   Program prog;
 
-   constexpr auto input = ":sq . *;"
-                          ": hypot sq ~ sq + sqrt ;"
-                          "3 4 hypot ";
+   static Program P {};
 
-   std::cout << prog.run(input);
+   P.clear_stack();
+
+   auto toks = src_to_tokens(input);
+
+   std::cout << "==Tokens==\n";
+
+   for (auto t : toks) {
+      print_token(t);
+   }
+
+   vector<Op_Code> codes;
+   compile(toks, codes, P.user_words);
+   P.eval(codes);
+
+   std::string result;
+   for (auto const value : P.stack) {
+      result += std::format("{}\n", value);
+   }
+   return result;
 }
