@@ -4,9 +4,9 @@
 #include <cmath>
 #include <cstdio>
 #include <format>
-#include <functional>
 #include <iostream>
 #include <numbers>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -17,6 +17,7 @@
 
 /* declutter */
 
+using std::optional;
 using std::string;
 using std::string_view;
 using std::unordered_map;
@@ -231,7 +232,7 @@ struct Op_Code {
 
 using User_Words = unordered_map<string, vector<Op_Code>>;
 
-unordered_map<string_view, Op_Code> intrinsics = {
+unordered_map<string_view, Op_Code> const intrinsics = {
    { "dup", Op_Code { .kind = Op_Kind::Dup } },
    { "swap", Op_Code { .kind = Op_Kind::Swap } },
 };
@@ -240,8 +241,8 @@ void compile_one(vector<Op_Code>& out, Token const& tok)
 {
    switch (tok.kind) {
    case Tok_Kind::Number: {
-      double value {};
-      auto   result = std::from_chars(
+      double     value;
+      auto const result = std::from_chars(
         tok.text.data(),
         tok.text.data() + tok.text.size(),
         value);
@@ -255,13 +256,18 @@ void compile_one(vector<Op_Code>& out, Token const& tok)
    }
 
    case Tok_Kind::Word:
-      if (intrinsics.contains(tok.text)) {
-         out.push_back(intrinsics.at(tok.text));
+      // we have to do it like this beacuse intrinsics is const
+      {
+         auto const it = intrinsics.find(tok.text);
+         if (it != intrinsics.end()) {
+            out.push_back(it->second);
+            break;
+         }
+         else {
+            out.push_back({ .kind = Op_Kind::Word, .text = string(tok.text) });
+         }
+         break;
       }
-      else {
-         out.push_back({ .kind = Op_Kind::Word, .text = string(tok.text) });
-      }
-      break;
 
    case Tok_Kind::Plus:
       out.push_back({ .kind = Op_Kind::Add });
@@ -289,7 +295,6 @@ void compile_one(vector<Op_Code>& out, Token const& tok)
       Panic {}("unexpected ';'");
    case Tok_Kind::Eof:
       break;
-
    case Tok_Kind::LBracket:
       Todo {}("LBracket");
    case Tok_Kind::RBracket:
@@ -340,16 +345,14 @@ void compile(
 struct Stack {
    vector<double> data;
 
-   double pop()
+   auto pop() -> optional<double>
    {
-      if (!data.empty()) {
-         double x = data.back();
-         data.pop_back();
-         return x;
-      }
-      else {
-         return 0;
-      }
+      if (data.empty())
+         return nullopt;
+
+      auto const x = data.back();
+      data.pop_back();
+      return x;
    }
 
    void push(double x)
@@ -357,47 +360,39 @@ struct Stack {
       data.push_back(x);
    }
 
-   double top()
+   auto top() -> optional<double>
    {
-      if (!data.empty()) {
-         return data.back();
-      }
-      else {
-         return 0;
-      }
+      if (data.empty())
+         return nullopt;
+
+      return data.back();
    }
 
-   std::pair<double, double> pop2()
+   auto pop2() -> optional<std::pair<double, double>>
    {
-      assert(data.size() >= 2);
-      double const x = pop();
-      double const y = pop();
-      return { x, y };
+      if (data.size() < 2)
+         return nullopt;
+
+      auto const x = data.back();
+      data.pop_back();
+      auto const y = data.back();
+      data.pop_back();
+      return std::pair(x, y);
    }
 
    auto begin() { return data.begin(); }
    auto end() { return data.end(); }
 };
 
-using Builtins = unordered_map<string_view, std::function<void()>>;
+
+struct Program;
+using BuiltinFn = void (*)(Program&);
+using Builtins  = std::unordered_map<std::string, BuiltinFn>;
 
 struct Program {
-   Stack      stack;
-   User_Words user_words;
-   Builtins   builtins;
-
-   Program()
-   {
-      builtins = {
-         { "sin", [&] { stack.push(std::sin(stack.pop())); } },
-         { "cos", [&] { stack.push(std::cos(stack.pop())); } },
-         { "tan", [&] { stack.push(std::tan(stack.pop())); } },
-
-         { "sqrt", [&] { stack.push(std::sqrt(stack.pop())); } },
-
-         { "pi", [&] { stack.push(std::numbers::pi); } },
-      };
-   }
+   Stack                 stack;
+   User_Words            user_words;
+   static Builtins const builtins;
 
    string run(char const* input)
    {
@@ -429,54 +424,139 @@ struct Program {
             stack.push(op.value);
             break;
          case Op_Kind::Add: {
-            auto const [x, y] = stack.pop2();
-            stack.push(y + x);
+            auto const opt = stack.pop2();
+            if (opt) {
+               auto const [x, y] = opt.value();
+               stack.push(y + x);
+            }
+            else {
+               std::cerr << "Stack Underflow, Add\n";
+            }
             break;
          }
          case Op_Kind::Sub: {
-            auto const [x, y] = stack.pop2();
-            stack.push(y - x);
+            auto const opt = stack.pop2();
+            if (opt) {
+               auto const [x, y] = opt.value();
+               stack.push(y - x);
+            }
+            else {
+               std::cerr << "Stack Underflow, Sub\n";
+            }
             break;
          }
          case Op_Kind::Mul: {
-            auto const [x, y] = stack.pop2();
-            stack.push(y * x);
+            auto const opt = stack.pop2();
+            if (opt) {
+               auto const [x, y] = opt.value();
+               stack.push(y * x);
+            }
+            else {
+               std::cerr << "Stack Underflow, Mul\n";
+            }
             break;
          }
          case Op_Kind::Div: {
-            auto const [x, y] = stack.pop2();
-            if (x == 0) {
-               stack.push(0);
+            auto const opt = stack.pop2();
+            if (opt) {
+               auto const [x, y] = opt.value();
+               if (x == 0) {
+                  stack.push(0);
+               }
+               else {
+                  stack.push(y / x);
+               }
             }
             else {
-               stack.push(y / x);
+               std::cerr << "Stack Underflow, Div\n";
             }
          } break;
          case Op_Kind::Dup: {
-            stack.push(stack.top());
+            auto const opt = stack.top();
+            if (opt) {
+               stack.push(opt.value());
+            }
             break;
          }
          case Op_Kind::Swap: {
-            auto const [x, y] = stack.pop2();
-            stack.push(x);
-            stack.push(y);
+            auto const opt = stack.pop2();
+            if (opt) {
+               auto const [x, y] = opt.value();
+               stack.push(x);
+               stack.push(y);
+            }
+            else {
+               std::cerr << "Stack Underflow, Swap\n";
+            }
             break;
          }
-         case Op_Kind::Word:
+         case Op_Kind::Word: {
 
-            if (builtins.contains(op.text))
-               builtins[op.text]();
+            // we have to do it like this beacuse it's const
+            auto const it = builtins.find(op.text);
+            if (it != builtins.end()) {
+               it->second(*this);
+               break;
+            }
 
             if (user_words.contains(op.text))
                eval(user_words[op.text]);
 
             break;
+         }
          case Op_Kind::Eof:
             return;
          }
       }
    }
 };
+
+// clang-format off
+const Builtins Program::builtins = {
+   {
+      "sin", [](Program& P) {
+         auto const opt = P.stack.pop();
+         if (opt)
+            P.stack.push(std::sin(*opt));
+         else
+            std::cerr << "Stack underflow sin\n";
+      }
+   },
+   {
+      "cos", [](Program& P) {
+         auto const opt = P.stack.pop();
+         if (opt)
+            P.stack.push(std::cos(*opt));
+         else
+            std::cerr << "Stack underflow cos\n";
+      }
+   },
+   {
+      "tan", [](Program& P) {
+         auto const opt = P.stack.pop();
+         if (opt)
+            P.stack.push(std::tan(*opt));
+         else
+            std::cerr << "Stack underflow tan\n";
+      }
+   },
+   {
+      "sqrt", [](Program& P) {
+         auto const opt = P.stack.pop();
+         if (opt)
+            P.stack.push(std::sqrt(*opt));
+         else
+            std::cerr << "Stack underflow sqrt\n";
+      }
+   },
+   {
+      "pi", [](Program& P) {
+         P.stack.push(std::numbers::pi);
+      }
+   },
+};
+
+// clang-format on
 
 int main()
 {
