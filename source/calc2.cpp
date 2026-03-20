@@ -536,7 +536,7 @@ struct Program {
          }
          case Op_Kind::Var: {
 
-            auto split_string = [](string_view& s, char delim) {
+            auto split_string = [](string_view& s, char delim) -> string_view {
                string_view result {};
                auto const  it = std::find(s.begin(), s.end(), delim);
                if (it != s.end()) {
