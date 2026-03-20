@@ -34,14 +34,17 @@ struct Panic {
    template <typename... Args>
    [[noreturn]] void operator()(Args&&... args) const
    {
-      std::cerr << "Panic @ "
+      std::cerr << "\033[31;1m"
+                << "PANIC "
+                << "\033[0m"
                 << loc.file_name()
                 << ":" << loc.line()
-                << ": ";
+                << ": "
+                << "\033[1m";
       if constexpr (sizeof...(args) > 0) {
          (std::cerr << ... << args);
       }
-      std::cerr << '\n';
+      std::cerr << "\033[0m" << "\n";
       std::exit(1);
    }
 };
@@ -56,17 +59,48 @@ struct Todo {
    template <typename... Args>
    [[noreturn]] void operator()(Args&&... args) const
    {
-      std::cerr << "Todo @ "
+      std::cerr << "\033[31;1m"
+                << "TODO "
+                << "\033[0m"
                 << loc.file_name()
                 << ":" << loc.line()
-                << ": TODO: ";
+                << ": "
+                << "\033[1m";
 
       if constexpr (sizeof...(args) > 0) {
          (std::cerr << ... << args);
       }
 
-      std::cerr << '\n';
+      std::cerr << "\033[0m" << '\n';
       std::exit(1);
+   }
+};
+
+#define TEST 0
+
+struct Log {
+   std::source_location loc;
+
+   explicit Log(std::source_location l = std::source_location::current())
+       : loc(l)
+   { }
+
+   template <typename... Args>
+   [[maybe_unused]] void operator()(Args&&... args) const
+   {
+      std::cerr << "\033[32;1m"
+                << "TRACE "
+                << "\033[0m"
+                << loc.file_name()
+                << ":" << loc.line()
+                << ": "
+                << "\033[1m";
+
+      if constexpr (sizeof...(args) > 0) {
+         (std::cerr << ... << args);
+      }
+
+      std::cerr << "\033[0m" << '\n';
    }
 };
 
