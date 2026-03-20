@@ -76,7 +76,6 @@ struct Todo {
    }
 };
 
-#define TEST 0
 
 struct Log {
    std::source_location loc;
