@@ -639,43 +639,66 @@ struct Program {
    }
 };
 
+static auto map_number(Value const& v, double (*fn)(double)) -> optional<Value>
+{
+   auto x = as_number(v);
+   if (!x) return nullopt;
+   return make_number(fn(*x));
+}
+
 // clang-format off
 const Builtins Program::builtins = {
    {
-      "sin", [](Program& P) {
-         auto const opt = P.stack.pop();
-         if (opt)
-            P.stack.push(std::sin(as_number(*opt).value()));
-         else
-            std::cerr << "Stack underflow sin\n";
+    "sin", [](Program& P) {
+      auto const opt = P.stack.pop();
+      if (!opt) {
+         std::cerr << "Stack underflow sin\n";
+         return;
       }
+
+      auto const result = map_number(*opt, std::sin);
+      if (result) P.stack.push(*result);
+      else std::cerr << "Type error sin\n";
+     }
    },
    {
       "cos", [](Program& P) {
          auto const opt = P.stack.pop();
-         if (opt)
-            P.stack.push(as_number(*opt).value());
-         else
+         if (!opt) {
             std::cerr << "Stack underflow cos\n";
+            return;
+         }
+
+         auto const result = map_number(*opt, std::cos);
+         if (result) P.stack.push(*result);
+         else std::cerr << "Type error cos\n";
       }
    },
    {
       "tan", [](Program& P) {
          auto const opt = P.stack.pop();
-         if (opt)
-            P.stack.push(as_number(*opt).value());
-         else
+         if (!opt) {
             std::cerr << "Stack underflow tan\n";
+            return;
+         }
+
+         auto const result = map_number(*opt, std::tan);
+         if (result) P.stack.push(*result);
+         else std::cerr << "Type error tan\n";
       }
    },
    {
       "sqrt", [](Program& P) {
          auto const opt = P.stack.pop();
-         if (opt)
-            P.stack.push(as_number(*opt).value());
-         else
+         if (!opt) {
             std::cerr << "Stack underflow sqrt\n";
-      }
+            return;
+         }
+
+         auto const result = map_number(*opt, std::sqrt);
+         if (result) P.stack.push(*result);
+         else std::cerr << "Type error sqrt\n";
+      } 
    },
    {
       "pi", [](Program& P) {
