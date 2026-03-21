@@ -12,6 +12,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "util.hpp"
@@ -308,8 +309,6 @@ void compile_one(vector<Op_Code>& out, std::vector<Token> const& tokens, size_t&
 
       Op_Code op = { .kind = Op_Kind::Var, .value = static_cast<double>(count), .text = idents };
 
-      writeln("Op ", op.value, op.text);
-
       out.push_back(op);
       break;
    }
@@ -389,10 +388,57 @@ void compile(
 }
 /* ===========  EVAL ============== */
 
-struct Stack {
-   vector<double> data;
+using Value = std::variant<double>;
 
-   auto pop() -> optional<double>
+static auto as_number(Value const& v) -> optional<double>
+{
+   if (auto p = std::get_if<double>(&v))
+      return *p;
+   return nullopt;
+}
+
+static auto make_number(double x) -> Value
+{
+   return Value { x };
+}
+
+static auto add_values(Value const& a, Value const& b) -> optional<Value>
+{
+   auto xa = as_number(a);
+   auto xb = as_number(b);
+   if (!xa || !xb) return nullopt;
+   return make_number(*xa + *xb);
+}
+
+static auto sub_values(Value const& a, Value const& b) -> optional<Value>
+{
+   auto xa = as_number(a);
+   auto xb = as_number(b);
+   if (!xa || !xb) return nullopt;
+   return make_number(*xa - *xb);
+}
+
+static auto mul_values(Value const& a, Value const& b) -> optional<Value>
+{
+   auto xa = as_number(a);
+   auto xb = as_number(b);
+   if (!xa || !xb) return nullopt;
+   return make_number(*xa * *xb);
+}
+
+static auto div_values(Value const& a, Value const& b) -> optional<Value>
+{
+   auto xa = as_number(a);
+   auto xb = as_number(b);
+   if (!xa || !xb) return nullopt;
+   if (*xb == 0) return make_number(0); // or return nullopt/error later
+   return make_number(*xa / *xb);
+}
+
+struct Stack {
+   vector<Value> data;
+
+   auto pop() -> optional<Value>
    {
       if (data.empty())
          return nullopt;
@@ -402,12 +448,12 @@ struct Stack {
       return x;
    }
 
-   void push(double x)
+   void push(Value x)
    {
       data.push_back(x);
    }
 
-   auto top() -> optional<double>
+   auto top() -> optional<Value>
    {
       if (data.empty())
          return nullopt;
@@ -415,7 +461,7 @@ struct Stack {
       return data.back();
    }
 
-   auto pop2() -> optional<std::pair<double, double>>
+   auto pop2() -> optional<std::pair<Value, Value>>
    {
       if (data.size() < 2)
          return nullopt;
@@ -436,10 +482,10 @@ using BuiltinFn = void (*)(Program&);
 using Builtins  = std::unordered_map<std::string, BuiltinFn>;
 
 struct Program {
-   Stack                         stack;
-   User_Words                    user_words;
-   unordered_map<string, double> variables;
-   static Builtins const         builtins;
+   Stack                        stack;
+   User_Words                   user_words;
+   unordered_map<string, Value> variables;
+   static Builtins const        builtins;
 
    void eval(vector<Op_Code> const& codes)
    {
@@ -451,51 +497,71 @@ struct Program {
             break;
          case Op_Kind::Add: {
             auto const opt = stack.pop2();
-            if (opt) {
-               auto const [x, y] = opt.value();
-               stack.push(y + x);
-            }
-            else {
+            if (!opt) {
                std::cerr << "Stack Underflow, Add\n";
+               break;
             }
+
+            auto const& [x, y] = *opt;
+            auto result        = add_values(y, x);
+            if (result)
+               stack.push(*result);
+            else
+               std::cerr << "Type error, Add\n";
             break;
          }
          case Op_Kind::Sub: {
             auto const opt = stack.pop2();
-            if (opt) {
-               auto const [x, y] = opt.value();
-               stack.push(y - x);
-            }
-            else {
+            if (!opt) {
                std::cerr << "Stack Underflow, Sub\n";
+               break;
             }
+
+            auto const& [x, y] = *opt;
+            auto result        = sub_values(y, x);
+            if (result)
+               stack.push(*result);
+            else
+               std::cerr << "Type error, Sub\n";
             break;
          }
          case Op_Kind::Mul: {
             auto const opt = stack.pop2();
-            if (opt) {
-               auto const [x, y] = opt.value();
-               stack.push(y * x);
-            }
-            else {
+            if (!opt) {
                std::cerr << "Stack Underflow, Mul\n";
+               break;
             }
+
+            auto const& [x, y] = *opt;
+            auto result        = mul_values(y, x);
+            if (result)
+               stack.push(*result);
+            else
+               std::cerr << "Type error, Mul\n";
             break;
          }
          case Op_Kind::Div: {
             auto const opt = stack.pop2();
-            if (opt) {
-               auto const [x, y] = opt.value();
-               if (x == 0) {
-                  stack.push(0);
-               }
-               else {
-                  stack.push(y / x);
-               }
-            }
-            else {
+            if (!opt) {
                std::cerr << "Stack Underflow, Div\n";
+               break;
             }
+
+            auto const& [x, y] = *opt;
+
+            if (as_number(y).value() == 0.0) {
+               std::cerr << "Div by 0, Div\n";
+               stack.push(make_number(0));
+               break;
+            }
+
+            auto result = div_values(y, x);
+            if (result)
+               stack.push(*result);
+            else
+               std::cerr << "Type error, Div\n";
+            break;
+
          } break;
          case Op_Kind::Dup: {
             auto const opt = stack.top();
@@ -553,8 +619,6 @@ struct Program {
                string_view ident = split_string(vars_sv, ' ');
                var_idents.emplace_back(ident);
             }
-            for (auto const& s : var_idents)
-               writeln("ident ", s);
             auto const num = static_cast<size_t>(op.value);
             for (size_t i = 0; i < std::min(num, var_idents.size()); ++i) {
                auto const opt = stack.pop();
@@ -581,7 +645,7 @@ const Builtins Program::builtins = {
       "sin", [](Program& P) {
          auto const opt = P.stack.pop();
          if (opt)
-            P.stack.push(std::sin(*opt));
+            P.stack.push(std::sin(as_number(*opt).value()));
          else
             std::cerr << "Stack underflow sin\n";
       }
@@ -590,7 +654,7 @@ const Builtins Program::builtins = {
       "cos", [](Program& P) {
          auto const opt = P.stack.pop();
          if (opt)
-            P.stack.push(std::cos(*opt));
+            P.stack.push(as_number(*opt).value());
          else
             std::cerr << "Stack underflow cos\n";
       }
@@ -599,7 +663,7 @@ const Builtins Program::builtins = {
       "tan", [](Program& P) {
          auto const opt = P.stack.pop();
          if (opt)
-            P.stack.push(std::tan(*opt));
+            P.stack.push(as_number(*opt).value());
          else
             std::cerr << "Stack underflow tan\n";
       }
@@ -608,7 +672,7 @@ const Builtins Program::builtins = {
       "sqrt", [](Program& P) {
          auto const opt = P.stack.pop();
          if (opt)
-            P.stack.push(std::sqrt(*opt));
+            P.stack.push(as_number(*opt).value());
          else
             std::cerr << "Stack underflow sqrt\n";
       }
@@ -621,6 +685,13 @@ const Builtins Program::builtins = {
 };
 
 // clang-format on
+
+static auto value_to_string(Value const& v) -> string
+{
+   if (auto p = std::get_if<double>(&v))
+      return std::format("{}", *p);
+   return "<unknown>";
+}
 
 auto run_calc(char const* input) -> string
 {
@@ -642,8 +713,9 @@ auto run_calc(char const* input) -> string
    P.eval(codes);
 
    std::string result;
-   for (auto const value : P.stack) {
-      result += std::format("{}\n", value);
+   for (auto const& value : P.stack) {
+      result += value_to_string(value);
+      result += '\n';
    }
    return result;
 }
