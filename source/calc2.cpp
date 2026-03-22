@@ -392,7 +392,7 @@ using Value = std::variant<double>;
 
 static auto as_number(Value const& v) -> optional<double>
 {
-   if (auto p = std::get_if<double>(&v))
+   if (auto const p = std::get_if<double>(&v))
       return *p;
    return nullopt;
 }
@@ -404,35 +404,35 @@ static auto make_number(double x) -> Value
 
 static auto add_values(Value const& a, Value const& b) -> optional<Value>
 {
-   auto xa = as_number(a);
-   auto xb = as_number(b);
-   if (!xa || !xb) return nullopt;
-   return make_number(*xa + *xb);
+   auto const x = as_number(a);
+   auto const y = as_number(b);
+   if (!x || !y) return nullopt;
+   return make_number(*x + *y);
 }
 
 static auto sub_values(Value const& a, Value const& b) -> optional<Value>
 {
-   auto xa = as_number(a);
-   auto xb = as_number(b);
-   if (!xa || !xb) return nullopt;
-   return make_number(*xa - *xb);
+   auto const x = as_number(a);
+   auto const y = as_number(b);
+   if (!x || !y) return nullopt;
+   return make_number(*x - *y);
 }
 
 static auto mul_values(Value const& a, Value const& b) -> optional<Value>
 {
-   auto xa = as_number(a);
-   auto xb = as_number(b);
-   if (!xa || !xb) return nullopt;
-   return make_number(*xa * *xb);
+   auto const x = as_number(a);
+   auto const y = as_number(b);
+   if (!x || !y) return nullopt;
+   return make_number(*x * *y);
 }
 
 static auto div_values(Value const& a, Value const& b) -> optional<Value>
 {
-   auto xa = as_number(a);
-   auto xb = as_number(b);
-   if (!xa || !xb) return nullopt;
-   if (*xb == 0) return make_number(0); // or return nullopt/error later
-   return make_number(*xa / *xb);
+   auto const x = as_number(a);
+   auto const y = as_number(b);
+   if (!x || !y) return nullopt;
+   if (*y == 0) return make_number(0);
+   return make_number(*x / *y);
 }
 
 struct Stack {
@@ -477,6 +477,10 @@ struct Stack {
    auto end() { return data.end(); }
 };
 
+struct Frame {
+   unordered_map<string, Value> locals;
+};
+
 struct Program;
 using BuiltinFn = void (*)(Program&);
 using Builtins  = std::unordered_map<std::string, BuiltinFn>;
@@ -503,7 +507,7 @@ struct Program {
             }
 
             auto const& [x, y] = *opt;
-            auto result        = add_values(y, x);
+            auto const result  = add_values(y, x);
             if (result)
                stack.push(*result);
             else
@@ -518,7 +522,7 @@ struct Program {
             }
 
             auto const& [x, y] = *opt;
-            auto result        = sub_values(y, x);
+            auto const result  = sub_values(y, x);
             if (result)
                stack.push(*result);
             else
@@ -533,7 +537,7 @@ struct Program {
             }
 
             auto const& [x, y] = *opt;
-            auto result        = mul_values(y, x);
+            auto const result  = mul_values(y, x);
             if (result)
                stack.push(*result);
             else
@@ -549,13 +553,7 @@ struct Program {
 
             auto const& [x, y] = *opt;
 
-            if (as_number(y).value() == 0.0) {
-               std::cerr << "Div by 0, Div\n";
-               stack.push(make_number(0));
-               break;
-            }
-
-            auto result = div_values(y, x);
+            auto const result = div_values(y, x);
             if (result)
                stack.push(*result);
             else
@@ -641,7 +639,7 @@ struct Program {
 
 static auto map_number(Value const& v, double (*fn)(double)) -> optional<Value>
 {
-   auto x = as_number(v);
+   auto const x = as_number(v);
    if (!x) return nullopt;
    return make_number(fn(*x));
 }
