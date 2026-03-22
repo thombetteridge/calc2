@@ -99,7 +99,7 @@ static auto lx_new_number(Lexer& lx) -> Token
 {
    size_t const start = lx.pos;
 
-   while (is_digit(lx.ch) || lx.ch == '.') {
+   while (is_digit(lx.ch) || lx.ch == '.' || lx.ch == 'e') {
       lx.advance();
    }
 
@@ -402,38 +402,33 @@ static auto make_number(double x) -> Value
    return Value { x };
 }
 
-static auto add_values(Value const& a, Value const& b) -> optional<Value>
-{
-   auto const x = as_number(a);
-   auto const y = as_number(b);
-   if (!x || !y) return nullopt;
-   return make_number(*x + *y);
-}
+struct Add_Vistor {
+   auto operator()(double const& x, double const& y) -> optional<Value>
+   {
+      return make_number(y + x);
+   }
+};
 
-static auto sub_values(Value const& a, Value const& b) -> optional<Value>
-{
-   auto const x = as_number(a);
-   auto const y = as_number(b);
-   if (!x || !y) return nullopt;
-   return make_number(*x - *y);
-}
+struct Sub_Vistor {
+   auto operator()(double const& x, double const& y) -> optional<Value>
+   {
+      return make_number(y - x);
+   }
+};
 
-static auto mul_values(Value const& a, Value const& b) -> optional<Value>
-{
-   auto const x = as_number(a);
-   auto const y = as_number(b);
-   if (!x || !y) return nullopt;
-   return make_number(*x * *y);
-}
-
-static auto div_values(Value const& a, Value const& b) -> optional<Value>
-{
-   auto const x = as_number(a);
-   auto const y = as_number(b);
-   if (!x || !y) return nullopt;
-   if (*y == 0) return make_number(0);
-   return make_number(*x / *y);
-}
+struct Mul_Vistor {
+   auto operator()(double const& x, double const& y) -> optional<Value>
+   {
+      return make_number(y * x);
+   }
+};
+struct Div_Vistor {
+   auto operator()(double const& x, double const& y) -> optional<Value>
+   {
+      if (x == 0.0) return make_number(0);
+      return make_number(y / x);
+   }
+};
 
 struct Stack {
    vector<Value> data;
@@ -507,7 +502,7 @@ struct Program {
             }
 
             auto const& [x, y] = *opt;
-            auto const result  = add_values(y, x);
+            auto const result  = std::visit(Add_Vistor {}, x, y);
             if (result)
                stack.push(*result);
             else
@@ -522,7 +517,7 @@ struct Program {
             }
 
             auto const& [x, y] = *opt;
-            auto const result  = sub_values(y, x);
+            auto const result  = std::visit(Sub_Vistor {}, x, y);
             if (result)
                stack.push(*result);
             else
@@ -537,7 +532,7 @@ struct Program {
             }
 
             auto const& [x, y] = *opt;
-            auto const result  = mul_values(y, x);
+            auto const result  = std::visit(Mul_Vistor {}, x, y);
             if (result)
                stack.push(*result);
             else
@@ -553,7 +548,7 @@ struct Program {
 
             auto const& [x, y] = *opt;
 
-            auto const result = div_values(y, x);
+            auto const result = std::visit(Div_Vistor {}, x, y);
             if (result)
                stack.push(*result);
             else
@@ -637,12 +632,15 @@ struct Program {
    }
 };
 
-static auto map_number(Value const& v, double (*fn)(double)) -> optional<Value>
-{
-   auto const x = as_number(v);
-   if (!x) return nullopt;
-   return make_number(fn(*x));
-}
+struct Map_Vistor {
+
+   double (*fn)(double);
+
+   auto operator()(double const& x) -> optional<Value>
+   {
+      return make_number(fn(x));
+   }
+};
 
 // clang-format off
 const Builtins Program::builtins = {
@@ -654,7 +652,7 @@ const Builtins Program::builtins = {
          return;
       }
 
-      auto const result = map_number(*opt, std::sin);
+      auto const result = std::visit(Map_Vistor{std::sin}, *opt);
       if (result) P.stack.push(*result);
       else std::cerr << "Type error sin\n";
      }
@@ -667,7 +665,7 @@ const Builtins Program::builtins = {
             return;
          }
 
-         auto const result = map_number(*opt, std::cos);
+         auto const result = std::visit(Map_Vistor{std::cos}, *opt);
          if (result) P.stack.push(*result);
          else std::cerr << "Type error cos\n";
       }
@@ -680,7 +678,7 @@ const Builtins Program::builtins = {
             return;
          }
 
-         auto const result = map_number(*opt, std::tan);
+         auto const result = std::visit(Map_Vistor{std::tan}, *opt);         
          if (result) P.stack.push(*result);
          else std::cerr << "Type error tan\n";
       }
@@ -693,7 +691,7 @@ const Builtins Program::builtins = {
             return;
          }
 
-         auto const result = map_number(*opt, std::sqrt);
+         auto const result = std::visit(Map_Vistor{std::sqrt}, *opt);
          if (result) P.stack.push(*result);
          else std::cerr << "Type error sqrt\n";
       } 
