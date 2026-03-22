@@ -9,6 +9,42 @@ RL_IMGUI_DIR := $(EXT_DIR)/rlimgui
 RAYLIB_DIR := $(EXT_DIR)/raylib
 RAYLIB_CPP_DIR := $(EXT_DIR)/raylib-cpp
 
+ifeq ($(OS),Windows_NT)
+
+OBJ := obj
+LIB := lib
+C := /c
+O := /OUT:
+FO := /Fo:
+I := /I
+OUT := /OUT:
+MD := /MD
+
+CC  := cl
+CXX := cl
+LD  := link
+AR  := lib
+
+EXE := .exe
+
+CALC_CXX_FLAGS := /nologo /W4 /std:c++20 /Zi /EHsc
+IMGUI_CXX_FLAGS := /nologo /std:c++20 /O2
+RL_IMGUI_CXX_FLAGS := /nologo /std:c++20 /O2
+
+LINK_HACK := P:\\BuildTools\\Windows Kits\\10\Lib\\10.0.26100.0\\um\\x64\\
+
+CALC_LINK_FLAGS := kernel32.lib user32.lib shell32.lib winmm.lib gdi32.lib opengl32.lib
+
+else
+
+OBJ := o
+LIB := a
+C := -c
+O := -o #space hack?
+FO := -o #space hack?
+CR := -cr
+I := -I
+OUT :=
 
 CC  := gcc
 CXX := g++
@@ -20,51 +56,69 @@ CALC_CXX_FLAGS := -Wall -Wextra -std=c++20 -ggdb
 IMGUI_CXX_FLAGS := -std=c++20 -O2 -fPIC
 RL_IMGUI_CXX_FLAGS := -std=c++20 -O2 -fPIC
 
-ifeq ($(OS),Windows_NT)
-CALC_LINK_FLAGS += -lgdi32 -lwinmm
 endif
 
+
 CALC_SRC := $(wildcard $(SRC_DIR)/*.cpp)
-CALC_OBJ := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/$(SRC_DIR)/%.o,$(CALC_SRC))
+CALC_OBJ := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/$(SRC_DIR)/%.$(OBJ),$(CALC_SRC))
 
 IMGUI_SRC := $(wildcard $(IMGUI_DIR)/*.cpp)
-IMGUI_OBJ := $(patsubst $(IMGUI_DIR)/%.cpp,$(BUILD_DIR)/imgui/%.o,$(IMGUI_SRC))
-IMGUI_LIB := $(BUILD_DIR)/libimgui.a
+IMGUI_OBJ := $(patsubst $(IMGUI_DIR)/%.cpp,$(BUILD_DIR)/imgui/%.$(OBJ),$(IMGUI_SRC))
+IMGUI_LIB := $(BUILD_DIR)/libimgui.$(LIB)
 
 RL_IMGUI_SRC := $(wildcard $(RL_IMGUI_DIR)/*.cpp)
-RL_IMGUI_OBJ := $(patsubst $(RL_IMGUI_DIR)/%.cpp,$(BUILD_DIR)/rlimgui/%.o,$(RL_IMGUI_SRC))
-RL_IMGUI_LIB := $(BUILD_DIR)/librlimgui.a
+RL_IMGUI_OBJ := $(patsubst $(RL_IMGUI_DIR)/%.cpp,$(BUILD_DIR)/rlimgui/%.$(OBJ),$(RL_IMGUI_SRC))
+RL_IMGUI_LIB := $(BUILD_DIR)/librlimgui.$(LIB)
 
-RAYLIB_LIB := $(BUILD_DIR)/libraylib.a
+ifeq ($(OS),Windows_NT)
+RAYLIB_LIB := lib/raylib.lib
+else
+RAYLIB_LIB := $(BUILD_DIR)/libraylib.$(LIB)
+endif
+
+
 
 run: all
-	./$(TARGET)
+	$(BUILD_DIR)/$(TARGET)$(EXE)
 
 all: $(TARGET)
 
-# MAIN
-$(TARGET): $(CALC_OBJ) $(IMGUI_LIB) $(RL_IMGUI_LIB) $(RAYLIB_LIB)
-	$(CXX) $(CALC_CXX_FLAGS) $(CALC_OBJ) $(IMGUI_LIB) $(RL_IMGUI_LIB) $(RAYLIB_LIB) $(CALC_LINK_FLAGS) -o $@
 
-$(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.cpp
+
+# cl.exe /MD /O2 /openmp /fp:fast /GL /GA /EHsc /external:I include/ /external:W0 main.cpp /link lib/raylib.lib kernel32.lib user32.lib shell32.lib winmm.lib gdi32.lib opengl32.lib /out:main.exe
+
+# MAIN
+ifeq ($(OS),Windows_NT)
+
+$(TARGET): $(CALC_OBJ) $(IMGUI_LIB) $(RL_IMGUI_LIB) $(RAYLIB_LIB)
+	$(LD)  $(O)$(BUILD_DIR)/$@$(EXE) $(CALC_OBJ)  $(IMGUI_LIB) $(RL_IMGUI_LIB) $(RAYLIB_LIB) $(CALC_LINK_FLAGS)
+
+else
+
+$(TARGET): $(CALC_OBJ) $(IMGUI_LIB) $(RL_IMGUI_LIB) $(RAYLIB_LIB)
+	$(CXX) $(CALC_CXX_FLAGS) $(CALC_OBJ)  $(IMGUI_LIB) $(RL_IMGUI_LIB) $(RAYLIB_LIB) $(CALC_LINK_FLAGS) $(O)$(BUILD_DIR)/$@$(EXE)
+
+endif
+
+$(BUILD_DIR)/$(SRC_DIR)/%.$(OBJ): $(SRC_DIR)/%.cpp
 	mkdir -p $(dir $@)
-	$(CXX) $(CALC_CXX_FLAGS) -I$(INC_DIR) -c $< -o $@
+	$(CXX) $(MD) $(CALC_CXX_FLAGS) $(I)$(INC_DIR) $(C) $< $(FO)$@
 
 # IMGUI
-$(BUILD_DIR)/imgui/%.o: $(IMGUI_DIR)/%.cpp
+$(BUILD_DIR)/imgui/%.$(OBJ): $(IMGUI_DIR)/%.cpp
 	mkdir -p $(dir $@)
-	$(CXX) $(IMGUI_CXX_FLAGS) -c $< -o $@
+	$(CXX) $(MD) $(IMGUI_CXX_FLAGS) $(C) $< $(FO)$@
 
 $(IMGUI_LIB): $(IMGUI_OBJ)
-	$(AR) -cr $@ $^
+	$(AR) $(CR) $(OUT)$@ $^
 
 # RLIMGUI
-$(BUILD_DIR)/rlimgui/%.o: $(RL_IMGUI_DIR)/%.cpp
+$(BUILD_DIR)/rlimgui/%.$(OBJ): $(RL_IMGUI_DIR)/%.cpp
 	mkdir -p $(dir $@)
-	$(CXX) $(RL_IMGUI_CXX_FLAGS) -I$(IMGUI_DIR) -I$(INC_DIR) -c $< -o $@
+	$(CXX) $(MD) $(RL_IMGUI_CXX_FLAGS) $(I)$(IMGUI_DIR) -I$(INC_DIR) $(C) $< $(FO)$@
 
 $(RL_IMGUI_LIB): $(RL_IMGUI_OBJ)
-	$(AR) -cr $@ $^
+	$(AR) $(CR) $(OUT)$@ $^
 
 # RAYLIB
 $(RAYLIB_LIB):
@@ -73,4 +127,4 @@ $(RAYLIB_LIB):
 	cp $(RAYLIB_DIR)/src/libraylib.a $@
 
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET)
+	rm -rf $(BUILD_DIR)
