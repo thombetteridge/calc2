@@ -16,7 +16,8 @@ LIB := lib
 C := /c
 O := /OUT:
 FO := /Fo:
-I := /I
+I := /external:I
+EXTERNAL := /external:W0
 OUT := /OUT:
 MD := /MD
 
@@ -102,7 +103,7 @@ endif
 
 $(BUILD_DIR)/$(SRC_DIR)/%.$(OBJ): $(SRC_DIR)/%.cpp
 	mkdir -p $(dir $@)
-	$(CXX) $(MD) $(CALC_CXX_FLAGS) $(I)$(INC_DIR) $(C) $< $(FO)$@
+	$(CXX) $(MD) $(CALC_CXX_FLAGS) $(I)$(INC_DIR) $(EXTERNAL) $(C) $< $(FO)$@
 
 # IMGUI
 $(BUILD_DIR)/imgui/%.$(OBJ): $(IMGUI_DIR)/%.cpp
@@ -115,7 +116,7 @@ $(IMGUI_LIB): $(IMGUI_OBJ)
 # RLIMGUI
 $(BUILD_DIR)/rlimgui/%.$(OBJ): $(RL_IMGUI_DIR)/%.cpp
 	mkdir -p $(dir $@)
-	$(CXX) $(MD) $(RL_IMGUI_CXX_FLAGS) $(I)$(IMGUI_DIR) -I$(INC_DIR) $(C) $< $(FO)$@
+	$(CXX) $(MD) $(RL_IMGUI_CXX_FLAGS) $(I)$(IMGUI_DIR) $(I)$(INC_DIR) $(EXTERNAL) $(C) $< $(FO)$@
 
 $(RL_IMGUI_LIB): $(RL_IMGUI_OBJ)
 	$(AR) $(CR) $(OUT)$@ $^
@@ -127,4 +128,7 @@ $(RAYLIB_LIB):
 	cp $(RAYLIB_DIR)/src/libraylib.a $@
 
 clean:
+	rm -rf $(BUILD_DIR)/$(SRC_DIR)
+
+cleanall:
 	rm -rf $(BUILD_DIR)
