@@ -15,9 +15,14 @@ CXX := g++
 LD  := g++
 AR  := ar
 
+
 CALC_CXX_FLAGS := -Wall -Wextra -std=c++20 -ggdb
 IMGUI_CXX_FLAGS := -std=c++20 -O2 -fPIC
 RL_IMGUI_CXX_FLAGS := -std=c++20 -O2 -fPIC
+
+ifeq ($(OS),Windows_NT)
+CALC_LINK_FLAGS += -lgdi32 -lwinmm
+endif
 
 CALC_SRC := $(wildcard $(SRC_DIR)/*.cpp)
 CALC_OBJ := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/$(SRC_DIR)/%.o,$(CALC_SRC))
@@ -39,7 +44,7 @@ all: $(TARGET)
 
 # MAIN
 $(TARGET): $(CALC_OBJ) $(IMGUI_LIB) $(RL_IMGUI_LIB) $(RAYLIB_LIB)
-	$(CXX) $(CALC_CXX_FLAGS) $(CALC_OBJ) $(IMGUI_LIB) $(RL_IMGUI_LIB) $(RAYLIB_LIB) -o $@
+	$(CXX) $(CALC_CXX_FLAGS) $(CALC_OBJ) $(IMGUI_LIB) $(RL_IMGUI_LIB) $(RAYLIB_LIB) $(CALC_LINK_FLAGS) -o $@
 
 $(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(dir $@)
