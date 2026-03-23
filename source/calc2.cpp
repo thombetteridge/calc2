@@ -18,7 +18,7 @@
 #include <fmt/format.h>
 
 #include "calc2.hpp"
-
+#include "lexer.hpp"
 #include "util.hpp"
 
 /* declutter */
@@ -28,208 +28,6 @@ using std::string;
 using std::string_view;
 using std::unordered_map;
 using std::vector;
-
-/* ============= LEXER =========== */
-
-enum class Tok_Kind : u8 {
-   None,
-   Eof,
-   Unknown,
-   Number,
-   Word,
-   Plus,
-   Minus,
-   Slash,
-   Star,
-   Dot,
-   Tilda,
-   Colon,
-   Semi,
-   Arrow,
-   LBracket,
-   RBracket
-};
-
-struct Token {
-   Tok_Kind    kind {};
-   string_view text {};
-};
-
-struct Lexer {
-   string_view src;
-   size_t      pos;
-   size_t      read_pos;
-   char        ch;
-
-   void advance()
-   {
-      if (read_pos >= src.size()) {
-         ch = '\000';
-         return;
-      }
-      pos = read_pos;
-      ch  = src[pos];
-      ++read_pos;
-   }
-};
-
-static auto is_white(char c) -> bool
-{
-   return c == ' ' || c == '\n' || c == '\t' || c == '\r';
-}
-
-static auto is_alpha(char c) -> bool
-{
-   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-}
-
-static auto is_digit(char c) -> bool
-{
-   return c >= '0' && c <= '9';
-}
-
-static auto is_delim(char c) -> bool
-{
-   return c == ';' || c == ':' || c == '[' || c == ']';
-}
-
-static auto is_operator(char c) -> bool
-{
-   return c == '+' || c == '-' || c == '*' || c == '/';
-}
-
-static auto lx_new_number(Lexer& lx) -> Token
-{
-   size_t const start = lx.pos;
-
-   while (is_digit(lx.ch) || lx.ch == '.' || lx.ch == 'e') {
-      lx.advance();
-   }
-
-   return Token {
-      .kind = Tok_Kind::Number,
-      .text = string_view(lx.src.substr(start, std::max(lx.pos - start, static_cast<size_t>(1)))),
-   };
-}
-
-static auto lx_new_word(Lexer& lx) -> Token
-{
-   size_t const start = lx.pos;
-
-   while (!(is_white(lx.ch) || is_delim(lx.ch) || is_operator(lx.ch) || lx.ch == '\000')) {
-      lx.advance();
-   }
-
-   return Token {
-      .kind = Tok_Kind::Word,
-      .text = string_view(lx.src.substr(start, std::max(lx.pos - start, static_cast<size_t>(1)))),
-   };
-}
-
-static auto lx_new_token(Lexer& lx, Tok_Kind kind) -> Token
-{
-   Token tok = {
-      .kind = kind,
-      .text = string_view(lx.src.substr(lx.pos, 1)),
-   };
-   lx.advance();
-   return tok;
-}
-
-static auto lx_new_token2(Lexer& lx, Tok_Kind kind) -> Token
-{
-   Token tok = {
-      .kind = kind,
-      .text = string_view(lx.src.substr(lx.pos, 2)),
-   };
-   lx.advance();
-   lx.advance();
-   return tok;
-}
-
-auto lx_next_token(Lexer& lx) -> Token
-{
-   while (is_white(lx.ch)) {
-      lx.advance();
-   }
-   // clang-format off
-   switch (lx.ch) {
-   case '\0': return Token { .kind = Tok_Kind::Eof, .text = string_view("EOF") };
-   case '+': return lx_new_token(lx, Tok_Kind::Plus);
-   case '-':
-      if (lx.pos+1 < lx.src.size() && lx.src[lx.pos+1] == '>') return lx_new_token2(lx, Tok_Kind::Arrow);
-      else   return lx_new_token(lx, Tok_Kind::Minus);
-   case '/': return lx_new_token(lx, Tok_Kind::Slash);
-   case '*': return lx_new_token(lx, Tok_Kind::Star);
-   case ':': return lx_new_token(lx, Tok_Kind::Colon);
-   case ';': return lx_new_token(lx, Tok_Kind::Semi);
-   case '~': return lx_new_token(lx, Tok_Kind::Tilda);
-   case '[': return lx_new_token(lx, Tok_Kind::LBracket);
-   case ']': return lx_new_token(lx, Tok_Kind::RBracket);
-   case '.' : {
-      if (lx.pos + 1 < lx.src.size() && is_digit (lx.src[lx.pos+1]) )
-         return lx_new_number(lx);
-      else
-         return lx_new_token(lx, Tok_Kind::Dot);
-   }
-      // clang-format on
-   default:
-      if (is_digit(lx.ch))
-         return lx_new_number(lx);
-      else if (is_alpha(lx.ch))
-         return lx_new_word(lx);
-      else
-         return lx_new_token(lx, Tok_Kind::Unknown);
-   }
-   UNREACHABLE();
-}
-
-void print_token(Token const& t)
-{
-   // clang-format off
-   switch (t.kind) {
-   case Tok_Kind::None:     writeln("Tok Kind: None, Text: ",     t.text); break;
-   case Tok_Kind::Eof:      writeln("Tok Kind: Eof, Text: ",      t.text); break;
-   case Tok_Kind::Unknown:  writeln("Tok Kind: Unknown, Text: ",  t.text); break;
-   case Tok_Kind::Number:   writeln("Tok Kind: Number, Text: ",   t.text); break;
-   case Tok_Kind::Word:     writeln("Tok Kind: Word, Text: ",     t.text); break;
-   case Tok_Kind::Plus:     writeln("Tok Kind: Plus, Text: ",     t.text); break;
-   case Tok_Kind::Minus:    writeln("Tok Kind: Minus, Text: ",    t.text); break;
-   case Tok_Kind::Slash:    writeln("Tok Kind: Slash, Text: ",    t.text); break;
-   case Tok_Kind::Star:     writeln("Tok Kind: Star, Text: ",     t.text); break;
-   case Tok_Kind::Colon:    writeln("Tok Kind: Colon, Text: ",    t.text); break;
-   case Tok_Kind::Semi:     writeln("Tok Kind: Semi, Text: ",     t.text); break;
-   case Tok_Kind::LBracket: writeln("Tok Kind: LBracket, Text: ", t.text); break;
-   case Tok_Kind::RBracket: writeln("Tok Kind: RBracket, Text: ", t.text); break;
-   case Tok_Kind::Dot:      writeln("Tok Kind: Dot, Text: ",      t.text); break;
-   case Tok_Kind::Tilda:    writeln("Tok Kind: Tilda, Text: ",    t.text); break;
-   case Tok_Kind::Arrow:    writeln("Tok Kind: Arrow, Text: ",    t.text); break;
-   }
-
-   // clang-format on
-}
-
-auto src_to_tokens(char const* src, size_t n) -> vector<Token>
-{
-   vector<Token> result;
-
-   Lexer lx = {
-      .src      = string_view(src, n),
-      .pos      = 0,
-      .read_pos = 0,
-      .ch       = '\000',
-   };
-
-   lx.advance();
-
-   Token tok;
-   do {
-      tok = lx_next_token(lx);
-      result.push_back(tok);
-   } while (tok.kind != Tok_Kind::Eof);
-
-   return result;
-}
 
 /* ============= COMPILE =========== */
 
@@ -340,16 +138,32 @@ void compile_one(vector<Op_Code>& out, std::vector<Token> const& tokens, size_t&
       break;
    case Tok_Kind::Unknown:
       Warning {}("Unknown token: ", tok.text);
+      break;
    case Tok_Kind::Colon:
       Warning {}("unexpected ':'");
+      break;
    case Tok_Kind::Semi:
       Warning {}("unexpected ';'");
-   case Tok_Kind::Eof:
       break;
    case Tok_Kind::LBracket:
-      // Todo {}("LBracket");
+      Warning {}("TODO: LBracket");
+      break;
    case Tok_Kind::RBracket:
-      // Todo {}("RBracket");
+      Warning {}("TODO: RBracket");
+      break;
+   case Tok_Kind::LParen:
+      Warning {}("TODO: LParen");
+      break;
+   case Tok_Kind::RParen:
+      Warning {}("TODO: RParen");
+      break;
+   case Tok_Kind::LBrace:
+      Warning {}("TODO: LBrace");
+      break;
+   case Tok_Kind::RBrace:
+      Warning {}("TODO: RBrace");
+      break;
+   case Tok_Kind::Eof:
       break;
    }
 }
@@ -717,7 +531,8 @@ static auto value_to_string(Value const& value) -> string
 {
    return std::visit(overload {
       [](double x) {
-         return fmt::format("{:.6g}", x);
+         // return fmt::format("{:.6g}", x);
+         return fmt::format("{}", x);
       },
       [] (auto v) {
          (void)v; UNREACHABLE() ;
@@ -733,13 +548,9 @@ auto run_calc(char const* input, size_t n) -> string
 
    P.clear_stack();
 
-   auto toks = src_to_tokens(input, n);
+   Lexer lx { input, n };
 
-   fmt::print("==Tokens==\n");
-
-   for (auto t : toks) {
-      print_token(t);
-   }
+   auto toks = lx.get_tokens();
 
    vector<Op_Code> codes;
    compile(toks, codes, P.user_words);
