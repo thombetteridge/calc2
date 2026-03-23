@@ -608,7 +608,7 @@ struct Program {
                }
 
                auto const result = s.substr(0, pos);
-               s                 = s.substr(pos + 1);
+               s.remove_prefix(pos + 1);
                return result;
             };
 
