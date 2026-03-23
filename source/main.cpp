@@ -24,7 +24,7 @@ auto main() -> int
    // Initialization
    //--------------------------------------------------------------------------------------
    //
-   std::string            output_text{};
+   std::string            output_text {};
    std::array<char, 2048> input_buffer {};
 
    SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
@@ -74,10 +74,9 @@ auto main() -> int
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
 
-            ImVec2 const                  avail         = ImGui::GetContentRegionAvail();
-            float const                   right_margin  = 0.0f;
-            float const                   bottom_margin = 2.0f;
-            static std::array<char, 2048> previous_input {};
+            ImVec2 const avail         = ImGui::GetContentRegionAvail();
+            float const  right_margin  = 0.0f;
+            float const  bottom_margin = 2.0f;
 
             if (ImGui::InputTextMultiline("##editor",
                                           input_buffer.data(),
@@ -86,8 +85,7 @@ auto main() -> int
                                                  avail.y - bottom_margin),
                                           ImGuiInputTextFlags_AllowTabInput)) {
 
-               previous_input = input_buffer;
-               output_text    = run_calc(previous_input.data(), previous_input.size());
+               output_text = run_calc(input_buffer.data(), input_buffer.size());
             }
 
             ImGui::PopStyleVar(2);
