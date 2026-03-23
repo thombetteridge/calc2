@@ -3,8 +3,9 @@
 #include <cstdint>
 #include <cstdlib>
 
-#include <iostream>
 #include <source_location>
+
+#include <fmt/format.h>
 
 using i8  = int8_t;
 using i16 = int16_t;
@@ -21,7 +22,7 @@ using u64 = uint64_t;
 #if defined(_MSC_VER) && !defined(__clang__) // MSVC
 #define UNREACHABLE() __assume(false);
 #else // GCC, Clang
-#define UNREACHABLE() __builtin_unreachable();
+#define UNREACHABLE() __builtin_unreachable()
 #endif
 
 struct Panic {
@@ -34,17 +35,12 @@ struct Panic {
    template <typename... Args>
    [[noreturn]] void operator()(Args&&... args) const
    {
-      std::cerr << "\033[31;1m"
-                << "PANIC "
-                << "\033[0m"
-                << loc.file_name()
-                << ":" << loc.line()
-                << ": "
-                << "\033[1m";
+      fmt::print("\033[31;1mPANIC \033[0m{} :{}: \033[1m", loc.file_name(), loc.line());
       if constexpr (sizeof...(args) > 0) {
-         (std::cerr << ... << args);
+         (fmt::print("{} ", std::forward<Args>(args)), ...);
+         fmt::print("\n");
       }
-      std::cerr << "\033[0m" << "\n";
+      fmt::print("\033[0m\n");
       std::exit(1);
    }
 };
@@ -59,19 +55,12 @@ struct Todo {
    template <typename... Args>
    [[noreturn]] void operator()(Args&&... args) const
    {
-      std::cerr << "\033[31;1m"
-                << "TODO "
-                << "\033[0m"
-                << loc.file_name()
-                << ":" << loc.line()
-                << ": "
-                << "\033[1m";
-
+      fmt::print(stderr, "\033[31;1mTODO \033[0m{} :{}: \033[1m", loc.file_name(), loc.line());
       if constexpr (sizeof...(args) > 0) {
-         (std::cerr << ... << args);
+         (fmt::print(stderr, "{} ", std::forward<Args>(args)), ...);
+         fmt::print(stderr, "\n");
       }
-
-      std::cerr << "\033[0m" << '\n';
+      fmt::print(stderr, "\033[0m\n");
       std::exit(1);
    }
 };
@@ -86,19 +75,30 @@ struct Log {
    template <typename... Args>
    [[maybe_unused]] void operator()(Args&&... args) const
    {
-      std::cerr << "\033[32;1m"
-                << "TRACE "
-                << "\033[0m"
-                << loc.file_name()
-                << ":" << loc.line()
-                << ": "
-                << "\033[1m";
-
+      fmt::print(stderr, "\033[32;1mLOG \033[0m{} :{}: \033[1m", loc.file_name(), loc.line());
       if constexpr (sizeof...(args) > 0) {
-         (std::cerr << ... << args);
+         (fmt::print(stderr, "{} ", std::forward<Args>(args)), ...);
+         fmt::print(stderr, "\n");
       }
+      fmt::print(stderr, "\033[0m\n");
+   }
+};
 
-      std::cerr << "\033[0m" << '\n';
+struct Warning {
+   std::source_location loc;
+
+   explicit Warning(std::source_location l = std::source_location::current())
+       : loc(l)
+   { }
+
+   template <typename... Args>
+   [[maybe_unused]] void operator()(Args&&... args) const
+   {
+      fmt::print(stderr, "\033[33;1mWARNING \033[0m{} :{}: \033[1m", loc.file_name(), loc.line());
+      if constexpr (sizeof...(args) > 0) {
+         (fmt::print(stderr, "{} ", std::forward<Args>(args)), ...);
+      }
+      fmt::print(stderr, "\033[0m\n");
    }
 };
 
@@ -106,10 +106,20 @@ template <typename... Args>
 [[maybe_unused]] void writeln(Args&&... args)
 {
    if constexpr (sizeof...(args) > 0) {
-      (std::cout << ... << args);
+      (fmt::print("{} ", std::forward<Args>(args)), ...);
    }
-   std::cout << '\n';
+   fmt::print("\n");
 }
+
+
+
+template <class... Ts>
+struct overload : Ts... {
+   using Ts::operator()...;
+};
+template <class... Ts>
+overload(Ts...) -> overload<Ts...>;
+
 
 template <typename F>
 struct Scoped {

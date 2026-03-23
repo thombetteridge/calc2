@@ -1,5 +1,6 @@
 add_rules("mode.debug", "mode.release")
 add_requires("raylib")
+add_requires("fmt")
 
 
 target("imgui")
@@ -27,5 +28,6 @@ target("stack_calc")
     add_sysincludedirs("include")
 
     add_packages("raylib")
+    add_packages("fmt")
     add_deps("imgui")
     add_deps("rlimgui")

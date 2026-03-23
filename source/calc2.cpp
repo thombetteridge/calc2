@@ -1,5 +1,4 @@
 
-
 #include "pch/pch_stdc++.hpp"
 
 #include <algorithm>
@@ -7,8 +6,6 @@
 #include <charconv>
 #include <cmath>
 #include <cstdio>
-#include <format>
-#include <iostream>
 #include <numbers>
 #include <optional>
 #include <string>
@@ -17,6 +14,8 @@
 #include <utility>
 #include <variant>
 #include <vector>
+
+#include <fmt/format.h>
 
 #include "calc2.hpp"
 
@@ -276,7 +275,7 @@ void compile_one(vector<Op_Code>& out, std::vector<Token> const& tokens, size_t&
         value);
 
       if (result.ec != std::errc()) {
-         // Panic {}("Malformed number: ", tok.text);
+         Warning {}("Malformed number: ", tok.text);
          break;
       }
 
@@ -340,11 +339,11 @@ void compile_one(vector<Op_Code>& out, std::vector<Token> const& tokens, size_t&
       out.push_back({ .kind = Op_Kind::Dup });
       break;
    case Tok_Kind::Unknown:
-      // Panic {}("Unknown token: ", tok.text);
+      Warning {}("Unknown token: ", tok.text);
    case Tok_Kind::Colon:
-      // Panic {}("unexpected ':'");
+      Warning {}("unexpected ':'");
    case Tok_Kind::Semi:
-      // Panic {}("unexpected ';'");
+      Warning {}("unexpected ';'");
    case Tok_Kind::Eof:
       break;
    case Tok_Kind::LBracket:
@@ -370,7 +369,7 @@ void compile(
       /* new user words */
       if (tok.kind == Tok_Kind::Colon) {
          if (i + 1 < tokens.size() && tokens[i + 1].kind != Tok_Kind::Word) {
-            // Panic {}("missing word name after ':' ");
+            Warning {}("missing word name after ':' ");
             break;
          }
 
@@ -384,7 +383,7 @@ void compile(
          }
 
          if (i >= tokens.size() || tokens[i].kind != Tok_Kind::Semi) {
-            // Panic {}("missing ';' after definition of ", name);
+            Warning {}("missing ';' after definition of", name);
             break;
          }
 
@@ -503,7 +502,7 @@ struct Program {
          case Op_Kind::Add: {
             auto const opt = stack.pop2();
             if (!opt) {
-               std::cerr << "Stack Underflow, Add\n";
+               Warning {}("Stack Underflow, Add");
                break;
             }
 
@@ -512,13 +511,13 @@ struct Program {
             if (result)
                stack.push(*result);
             else
-               std::cerr << "Type error, Add\n";
+               Warning {}("Type error, Add");
             break;
          }
          case Op_Kind::Sub: {
             auto const opt = stack.pop2();
             if (!opt) {
-               std::cerr << "Stack Underflow, Sub\n";
+               Warning {}("Stack Underflow, Sub");
                break;
             }
 
@@ -527,13 +526,13 @@ struct Program {
             if (result)
                stack.push(*result);
             else
-               std::cerr << "Type error, Sub\n";
+               Warning {}("Type error, Sub");
             break;
          }
          case Op_Kind::Mul: {
             auto const opt = stack.pop2();
             if (!opt) {
-               std::cerr << "Stack Underflow, Mul\n";
+               Warning {}("Stack Underflow, Mul");
                break;
             }
 
@@ -542,13 +541,13 @@ struct Program {
             if (result)
                stack.push(*result);
             else
-               std::cerr << "Type error, Mul\n";
+               Warning {}("Type error, Mul");
             break;
          }
          case Op_Kind::Div: {
             auto const opt = stack.pop2();
             if (!opt) {
-               std::cerr << "Stack Underflow, Div\n";
+               Warning {}("Stack Underflow, Div");
                break;
             }
 
@@ -558,7 +557,7 @@ struct Program {
             if (result)
                stack.push(*result);
             else
-               std::cerr << "Type error, Div\n";
+               Warning {}("Type error, Div");
             break;
 
          } break;
@@ -577,7 +576,7 @@ struct Program {
                stack.push(y);
             }
             else {
-               std::cerr << "Stack Underflow, Swap\n";
+               Warning {}("Stack Underflow, Swap");
             }
             break;
          }
@@ -590,13 +589,17 @@ struct Program {
                break;
             }
 
-            if (user_words.contains(op.text))
+            if (user_words.contains(op.text)) {
                eval(user_words[op.text]);
+               break;
+            }
 
             if (variables.contains(op.text)) {
                stack.push(variables[op.text]);
+               break;
             }
 
+            Warning {}("Unknown word: ", op.text);
             break;
          }
          case Op_Kind::Var: {
@@ -655,52 +658,52 @@ const Builtins Program::builtins = {
     "sin", [](Program& P) {
       auto const opt = P.stack.pop();
       if (!opt) {
-         std::cerr << "Stack underflow sin\n";
+         Warning{} ("Stack underflow sin");
          return;
       }
 
       auto const result = std::visit(Map_Vistor{std::sin}, *opt);
       if (result) P.stack.push(*result);
-      else std::cerr << "Type error sin\n";
+      else Warning{} ("Type error sin");
      }
    },
    {
       "cos", [](Program& P) {
          auto const opt = P.stack.pop();
          if (!opt) {
-            std::cerr << "Stack underflow cos\n";
+            Warning{} ("Stack underflow cos");
             return;
          }
 
          auto const result = std::visit(Map_Vistor{std::cos}, *opt);
          if (result) P.stack.push(*result);
-         else std::cerr << "Type error cos\n";
+         else Warning{} ("Type error cos");
       }
    },
    {
       "tan", [](Program& P) {
          auto const opt = P.stack.pop();
          if (!opt) {
-            std::cerr << "Stack underflow tan\n";
+            Warning{} ("Stack underflow tan");
             return;
          }
 
          auto const result = std::visit(Map_Vistor{std::tan}, *opt);         
          if (result) P.stack.push(*result);
-         else std::cerr << "Type error tan\n";
+         else Warning{} ("Type error tan");
       }
    },
    {
       "sqrt", [](Program& P) {
          auto const opt = P.stack.pop();
          if (!opt) {
-            std::cerr << "Stack underflow sqrt\n";
+            Warning{} ("Stack underflow sqrt");
             return;
          }
 
          auto const result = std::visit(Map_Vistor{std::sqrt}, *opt);
          if (result) P.stack.push(*result);
-         else std::cerr << "Type error sqrt\n";
+         else Warning{} ("Type error sqrt");
       } 
    },
    {
@@ -710,14 +713,18 @@ const Builtins Program::builtins = {
    },
 };
 
-// clang-format on
-
-static auto value_to_string(Value const& v) -> string
+static auto value_to_string(Value const& value) -> string
 {
-   if (auto p = std::get_if<double>(&v))
-      return std::format("{}", *p);
-   return "<unknown>";
+   return std::visit(overload {
+      [](double x) {
+         return fmt::format("{:.6g}", x);
+      },
+      [] (auto v) {
+         (void)v; UNREACHABLE() ;
+      }
+   }, value);
 }
+// clang-format on
 
 auto run_calc(char const* input, size_t n) -> string
 {
@@ -728,7 +735,7 @@ auto run_calc(char const* input, size_t n) -> string
 
    auto toks = src_to_tokens(input, n);
 
-   std::cout << "==Tokens==\n";
+   fmt::print("==Tokens==\n");
 
    for (auto t : toks) {
       print_token(t);
@@ -738,7 +745,7 @@ auto run_calc(char const* input, size_t n) -> string
    compile(toks, codes, P.user_words);
    P.eval(codes);
 
-   std::string result;
+   std::string result {};
    for (auto const& value : P.stack) {
       result += value_to_string(value);
       result += '\n';
