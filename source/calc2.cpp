@@ -60,7 +60,7 @@ struct Lexer {
 
    void advance()
    {
-      if (read_pos > src.size()) {
+      if (read_pos >= src.size()) {
          ch = '\000';
          return;
       }
@@ -105,7 +105,7 @@ static auto lx_new_number(Lexer& lx) -> Token
 
    return Token {
       .kind = Tok_Kind::Number,
-      .text = string_view(lx.src.data() + start, lx.pos - start),
+      .text = string_view(lx.src.data() + start, std::max(lx.pos - start, static_cast<size_t>(1))),
    };
 }
 
@@ -119,7 +119,7 @@ static auto lx_new_word(Lexer& lx) -> Token
 
    return Token {
       .kind = Tok_Kind::Word,
-      .text = string_view(lx.src.data() + start, lx.pos - start),
+      .text = string_view(lx.src.data() + start, std::max(lx.pos - start, static_cast<size_t>(1))),
    };
 }
 

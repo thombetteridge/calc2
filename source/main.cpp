@@ -15,11 +15,11 @@ constexpr auto screen_title  = "Calc2";
 auto main() -> int
 {
 
-   constexpr auto input = ":sq . *;"
-                          ": hypot sq ~ sq + sqrt ;"
-                          "3 4 hypot ";
+   // constexpr auto input = ":sq . *;"
+   //                        ": hypot sq ~ sq + sqrt ;"
+   //                        "3 4 hypot ";
 
-   std::cout << run_calc(input);
+   // std::cout << run_calc(input);
    // Initialization
    //--------------------------------------------------------------------------------------
    static std::string output_text;

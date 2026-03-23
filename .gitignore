@@ -40,6 +40,9 @@
 # debug information files
 *.dwo
 
+build
+.xmake
+.compile_commands
 *.ini
 build2
 .cache
