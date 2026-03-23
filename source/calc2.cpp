@@ -1,4 +1,7 @@
 
+
+#include "pch/pch_stdc++.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <charconv>
@@ -15,6 +18,8 @@
 #include <variant>
 #include <vector>
 
+#include "calc2.hpp"
+
 #include "util.hpp"
 
 /* declutter */
@@ -25,7 +30,6 @@ using std::string_view;
 using std::unordered_map;
 using std::vector;
 
-using namespace std;
 
 /* ============= LEXER =========== */
 
@@ -49,7 +53,7 @@ enum class Tok_Kind {
 
 struct Token {
    Tok_Kind    kind;
-   string_view text;
+   string_view text{};
 };
 
 struct Lexer {
@@ -390,12 +394,6 @@ void compile(
 
 using Value = std::variant<double>;
 
-static auto as_number(Value const& v) -> optional<double>
-{
-   if (auto const p = std::get_if<double>(&v))
-      return *p;
-   return nullopt;
-}
 
 static auto make_number(double x) -> Value
 {
@@ -403,27 +401,27 @@ static auto make_number(double x) -> Value
 }
 
 struct Add_Vistor {
-   auto operator()(double const& x, double const& y) -> optional<Value>
+   auto operator()(double x, double y) -> optional<Value>
    {
       return make_number(y + x);
    }
 };
 
 struct Sub_Vistor {
-   auto operator()(double const& x, double const& y) -> optional<Value>
+   auto operator()(double x, double y) -> optional<Value>
    {
       return make_number(y - x);
    }
 };
 
 struct Mul_Vistor {
-   auto operator()(double const& x, double const& y) -> optional<Value>
+   auto operator()(double x, double y) -> optional<Value>
    {
       return make_number(y * x);
    }
 };
 struct Div_Vistor {
-   auto operator()(double const& x, double const& y) -> optional<Value>
+   auto operator()(double x, double y) -> optional<Value>
    {
       if (x == 0.0) return make_number(0);
       return make_number(y / x);
@@ -636,7 +634,7 @@ struct Map_Vistor {
 
    double (*fn)(double);
 
-   auto operator()(double const& x) -> optional<Value>
+   auto operator()(double x) -> optional<Value>
    {
       return make_number(fn(x));
    }

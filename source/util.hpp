@@ -113,3 +113,25 @@ template <typename... Args>
    }
    std::cout << '\n';
 }
+
+
+#pragma once
+
+template <typename F>
+struct Scoped {
+  F f;
+  Scoped(F f)
+      : f(f) { }
+  ~Scoped() { f(); }
+
+};
+
+template <typename F>
+auto MakeScopeExit(F&& f) -> Scoped<F> {
+  return Scoped<F>(f);
+};
+
+#define STRING_CAT2(arg1, arg2) arg1##arg2
+#define STRING_CAT(arg1, arg2) STRING_CAT2(arg1, arg2)
+#define scope_exit(code) \
+  auto STRING_CAT2(scope_exit_, __LINE__) = Scoped ( [&]() -> auto { code; } )

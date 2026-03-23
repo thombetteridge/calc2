@@ -42,7 +42,7 @@
 
 build
 .xmake
-.compile_commands
+.compile_commands.json
 *.ini
 build2
 .cache

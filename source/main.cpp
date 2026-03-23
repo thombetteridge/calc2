@@ -1,4 +1,4 @@
-#include <iostream>
+
 #include <array>
 
 #include <imgui.h>
@@ -7,10 +7,12 @@
 
 #include "calc2.hpp"
 #include "raylib.h"
+#include "util.hpp"
 
 constexpr int  screen_width  = 400;
 constexpr int  screen_height = 600;
 constexpr auto screen_title  = "Calc2";
+
 
 auto main() -> int
 {
@@ -22,14 +24,16 @@ auto main() -> int
    // std::cout << run_calc(input);
    // Initialization
    //--------------------------------------------------------------------------------------
-   static std::string output_text;
+   std::string output_text;
    // static char        input_buffer[1024] = "";
    std::array<char, 2048> input_buffer{};
 
    SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
    auto window = raylib::Window(screen_width, screen_height, screen_title);
    SetTargetFPS(30);
+
    rlImGuiSetup(true);
+   scope_exit(rlImGuiShutdown());
 
    // Main game loop
    while (!window.ShouldClose()) // Detect window close button or ESC key
@@ -53,13 +57,7 @@ auto main() -> int
 
             ImVec2 const out_avail = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("OutputText", ImVec2(out_avail.x, out_avail.y), false, ImGuiWindowFlags_HorizontalScrollbar);
-            // static std::string prev_joined;
-            // std::string        joined;
-            // joined.reserve(256);
-            // for (const auto& line : stack_output) {
-            //    joined += line;
-            //    joined += '\n';
-            // }
+
             ImVec2 const inner_avail = ImGui::GetContentRegionAvail();
 
             ImGui::InputTextMultiline("##output", output_text.data(),
@@ -101,9 +99,6 @@ auto main() -> int
       }
       window.EndDrawing();
    }
-
-   // De-Initialization
-   rlImGuiShutdown();
 
    return 0;
 }

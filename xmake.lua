@@ -21,6 +21,8 @@ target("stack_calc")
     set_warnings("all", "extra")
     set_kind("binary")
 
+    set_pcxxheader("source/pch/pch_stdc++.hpp")
+
     add_files("source/*.cpp")
     add_sysincludedirs("include")
 
