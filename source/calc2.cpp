@@ -30,10 +30,10 @@ using std::string_view;
 using std::unordered_map;
 using std::vector;
 
-
 /* ============= LEXER =========== */
 
-enum class Tok_Kind {
+enum class Tok_Kind : u8 {
+   None,
    Eof,
    Unknown,
    Number,
@@ -52,8 +52,8 @@ enum class Tok_Kind {
 };
 
 struct Token {
-   Tok_Kind    kind;
-   string_view text{};
+   Tok_Kind    kind {};
+   string_view text {};
 };
 
 struct Lexer {
@@ -109,7 +109,7 @@ static auto lx_new_number(Lexer& lx) -> Token
 
    return Token {
       .kind = Tok_Kind::Number,
-      .text = string_view(lx.src.data() + start, std::max(lx.pos - start, static_cast<size_t>(1))),
+      .text = string_view(lx.src.substr(start, std::max(lx.pos - start, static_cast<size_t>(1)))),
    };
 }
 
@@ -123,7 +123,7 @@ static auto lx_new_word(Lexer& lx) -> Token
 
    return Token {
       .kind = Tok_Kind::Word,
-      .text = string_view(lx.src.data() + start, std::max(lx.pos - start, static_cast<size_t>(1))),
+      .text = string_view(lx.src.substr(start, std::max(lx.pos - start, static_cast<size_t>(1)))),
    };
 }
 
@@ -131,7 +131,7 @@ static auto lx_new_token(Lexer& lx, Tok_Kind kind) -> Token
 {
    Token tok = {
       .kind = kind,
-      .text = string_view(lx.src.data() + lx.pos, 1),
+      .text = string_view(lx.src.substr(lx.pos, 1)),
    };
    lx.advance();
    return tok;
@@ -141,7 +141,7 @@ static auto lx_new_token2(Lexer& lx, Tok_Kind kind) -> Token
 {
    Token tok = {
       .kind = kind,
-      .text = string_view(lx.src.data() + lx.pos, 2),
+      .text = string_view(lx.src.substr(lx.pos, 2)),
    };
    lx.advance();
    lx.advance();
@@ -189,6 +189,7 @@ void print_token(Token const& t)
 {
    // clang-format off
    switch (t.kind) {
+   case Tok_Kind::None:     writeln("Tok Kind: None, Text: ",     t.text); break;
    case Tok_Kind::Eof:      writeln("Tok Kind: Eof, Text: ",      t.text); break;
    case Tok_Kind::Unknown:  writeln("Tok Kind: Unknown, Text: ",  t.text); break;
    case Tok_Kind::Number:   writeln("Tok Kind: Number, Text: ",   t.text); break;
@@ -209,12 +210,12 @@ void print_token(Token const& t)
    // clang-format on
 }
 
-auto src_to_tokens(char const* src) -> vector<Token>
+auto src_to_tokens(char const* src, size_t n) -> vector<Token>
 {
    vector<Token> result;
 
    Lexer lx = {
-      .src      = src,
+      .src      = string_view(src, n),
       .pos      = 0,
       .read_pos = 0,
       .ch       = '\000',
@@ -233,7 +234,8 @@ auto src_to_tokens(char const* src) -> vector<Token>
 
 /* ============= COMPILE =========== */
 
-enum class Op_Kind {
+enum class Op_Kind : u8 {
+   None,
    Val,
    Word,
    Add,
@@ -263,6 +265,9 @@ void compile_one(vector<Op_Code>& out, std::vector<Token> const& tokens, size_t&
 {
    auto const& tok = tokens[i];
    switch (tok.kind) {
+   case Tok_Kind::None:
+      Panic {}("Tok None");
+
    case Tok_Kind::Number: {
       double     value {};
       auto const result = std::from_chars(
@@ -394,7 +399,6 @@ void compile(
 
 using Value = std::variant<double>;
 
-
 static auto make_number(double x) -> Value
 {
    return Value { x };
@@ -434,7 +438,7 @@ struct Stack {
    auto pop() -> optional<Value>
    {
       if (data.empty())
-         return nullopt;
+         return std::nullopt;
 
       auto const x = data.back();
       data.pop_back();
@@ -449,7 +453,7 @@ struct Stack {
    auto top() -> optional<Value>
    {
       if (data.empty())
-         return nullopt;
+         return std::nullopt;
 
       return data.back();
    }
@@ -457,7 +461,7 @@ struct Stack {
    auto pop2() -> optional<std::pair<Value, Value>>
    {
       if (data.size() < 2)
-         return nullopt;
+         return std::nullopt;
 
       auto const x = data.back();
       data.pop_back();
@@ -488,6 +492,10 @@ struct Program {
    {
       for (auto const& op : codes) {
          switch (op.kind) {
+
+         case Op_Kind::None:
+            Panic {}("Op_Kind NONE ??");
+            break;
 
          case Op_Kind::Val:
             stack.push(op.value);
@@ -593,13 +601,14 @@ struct Program {
          }
          case Op_Kind::Var: {
 
-            auto split_string = [](string_view& s, char delim) -> string_view {
-               string_view result {};
-               auto const  it = std::find(s.begin(), s.end(), delim);
-               if (it != s.end()) {
-                  result = string_view(s.begin(), it);
-                  s      = string_view(it + 1, s.end());
+            auto split_string = [](std::string_view& s, char delim) -> std::string_view {
+               auto const pos = s.find(delim);
+               if (pos == std::string_view::npos) {
+                  return {};
                }
+
+               auto const result = s.substr(0, pos);
+               s                 = s.substr(pos + 1);
                return result;
             };
 
@@ -710,14 +719,14 @@ static auto value_to_string(Value const& v) -> string
    return "<unknown>";
 }
 
-auto run_calc(char const* input) -> string
+auto run_calc(char const* input, size_t n) -> string
 {
 
    static Program P {};
 
    P.clear_stack();
 
-   auto toks = src_to_tokens(input);
+   auto toks = src_to_tokens(input, n);
 
    std::cout << "==Tokens==\n";
 

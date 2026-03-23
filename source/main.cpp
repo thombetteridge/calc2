@@ -9,10 +9,9 @@
 #include "raylib.h"
 #include "util.hpp"
 
-constexpr int  screen_width  = 400;
-constexpr int  screen_height = 600;
-constexpr auto screen_title  = "Calc2";
-
+static constexpr int  screen_width  = 400;
+static constexpr int  screen_height = 600;
+static constexpr auto screen_title  = "Calc2";
 
 auto main() -> int
 {
@@ -24,9 +23,9 @@ auto main() -> int
    // std::cout << run_calc(input);
    // Initialization
    //--------------------------------------------------------------------------------------
-   std::string output_text;
-   // static char        input_buffer[1024] = "";
-   std::array<char, 2048> input_buffer{};
+   //
+   std::string            output_text{};
+   std::array<char, 2048> input_buffer {};
 
    SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
    auto window = raylib::Window(screen_width, screen_height, screen_title);
@@ -75,10 +74,10 @@ auto main() -> int
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
 
-            ImVec2 const       avail         = ImGui::GetContentRegionAvail();
-            float const        right_margin  = 0.0f;
-            float const        bottom_margin = 2.0f;
-            static std::array<char, 2048> previous_input{};
+            ImVec2 const                  avail         = ImGui::GetContentRegionAvail();
+            float const                   right_margin  = 0.0f;
+            float const                   bottom_margin = 2.0f;
+            static std::array<char, 2048> previous_input {};
 
             if (ImGui::InputTextMultiline("##editor",
                                           input_buffer.data(),
@@ -88,7 +87,7 @@ auto main() -> int
                                           ImGuiInputTextFlags_AllowTabInput)) {
 
                previous_input = input_buffer;
-               output_text    = run_calc(previous_input.data());
+               output_text    = run_calc(previous_input.data(), previous_input.size());
             }
 
             ImGui::PopStyleVar(2);

@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include <string>
 
-auto run_calc(const char* src) -> std::string;
+auto run_calc(char const* src, size_t n) -> std::string;

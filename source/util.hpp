@@ -1,22 +1,20 @@
 #pragma once
 
-// #include "pch.h"
-
 #include <cstdint>
 #include <cstdlib>
 
 #include <iostream>
 #include <source_location>
 
-typedef int8_t  i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
+using i8  = int8_t;
+using i16 = int16_t;
+using i32 = int32_t;
+using i64 = int64_t;
 
-typedef uint8_t  u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
+using u8  = uint8_t;
+using u16 = uint16_t;
+using u32 = uint32_t;
+using u64 = uint64_t;
 
 // https://en.cppreference.com/w/cpp/utility/unreachable.html
 // use a macro until we get c++23
@@ -78,7 +76,6 @@ struct Todo {
    }
 };
 
-
 struct Log {
    std::source_location loc;
 
@@ -114,24 +111,16 @@ template <typename... Args>
    std::cout << '\n';
 }
 
-
-#pragma once
-
 template <typename F>
 struct Scoped {
-  F f;
-  Scoped(F f)
-      : f(f) { }
-  ~Scoped() { f(); }
-
-};
-
-template <typename F>
-auto MakeScopeExit(F&& f) -> Scoped<F> {
-  return Scoped<F>(f);
+   F f;
+   Scoped(F f)
+       : f(f)
+   { }
+   ~Scoped() { f(); }
 };
 
 #define STRING_CAT2(arg1, arg2) arg1##arg2
-#define STRING_CAT(arg1, arg2) STRING_CAT2(arg1, arg2)
+#define STRING_CAT(arg1, arg2)  STRING_CAT2(arg1, arg2)
 #define scope_exit(code) \
-  auto STRING_CAT2(scope_exit_, __LINE__) = Scoped ( [&]() -> auto { code; } )
+   auto STRING_CAT2(scope_exit_, __LINE__) = Scoped([&]() -> auto { code; })
