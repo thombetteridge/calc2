@@ -11,9 +11,9 @@ target("imgui")
 
 target("rlimgui")
     set_kind("static")
-    add_files("third_party/rlImGui/*.cpp")
+    add_files("third_party/rlimgui/*.cpp")
     add_includedirs("third_party/imgui")
-    add_includedirs("third_party/rlImGui/", {public = true})
+    add_includedirs("third_party/rlimgui/", {public = true})
     add_packages("raylib")
     set_warnings("none")
 

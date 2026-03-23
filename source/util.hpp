@@ -133,4 +133,4 @@ struct Scoped {
 #define STRING_CAT2(arg1, arg2) arg1##arg2
 #define STRING_CAT(arg1, arg2)  STRING_CAT2(arg1, arg2)
 #define scope_exit(code) \
-   auto STRING_CAT2(scope_exit_, __LINE__) = Scoped([&]() -> auto { code; })
+   auto STRING_CAT(scope_exit_, __LINE__) = Scoped([&]() -> auto { code; })
