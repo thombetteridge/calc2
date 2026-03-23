@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <numbers>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -58,7 +59,13 @@ unordered_map<string_view, Op_Code> const intrinsics = {
    { "swap", Op_Code { .kind = Op_Kind::Swap } },
 };
 
-void compile_one(vector<Op_Code>& out, std::vector<Token> const& tokens, size_t& i)
+
+void recurive_parse(vector<Op_Code>& out, std::span<Token> const& tokens)
+{
+   
+}
+
+void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& i)
 {
    auto const& tok = tokens[i];
    switch (tok.kind) {
@@ -187,7 +194,7 @@ void compile(
             break;
          }
 
-         std::string name(tokens[i + 1].text);
+         string name(tokens[i + 1].text);
          i += 2; /* skip "name :" */
 
          vector<Op_Code> body;
@@ -212,36 +219,31 @@ void compile(
 
 using Value = std::variant<double>;
 
-static auto make_number(double x) -> Value
-{
-   return Value { x };
-}
-
 struct Add_Vistor {
    auto operator()(double x, double y) -> optional<Value>
    {
-      return make_number(y + x);
+      return y + x;
    }
 };
 
 struct Sub_Vistor {
    auto operator()(double x, double y) -> optional<Value>
    {
-      return make_number(y - x);
+      return y - x;
    }
 };
 
 struct Mul_Vistor {
    auto operator()(double x, double y) -> optional<Value>
    {
-      return make_number(y * x);
+      return y * x;
    }
 };
 struct Div_Vistor {
    auto operator()(double x, double y) -> optional<Value>
    {
-      if (x == 0.0) return make_number(0);
-      return make_number(y / x);
+      if (x == 0.0) return 0.0;
+      return y / x;
    }
 };
 
@@ -286,6 +288,7 @@ struct Stack {
    auto begin() { return data.begin(); }
    auto end() { return data.end(); }
 };
+
 
 struct Frame {
    unordered_map<string, Value> locals;
@@ -366,7 +369,6 @@ struct Program {
             }
 
             auto const& [x, y] = *opt;
-
             auto const result = std::visit(Div_Vistor {}, x, y);
             if (result)
                stack.push(*result);
@@ -462,7 +464,7 @@ struct Map_Vistor {
 
    auto operator()(double x) -> optional<Value>
    {
-      return make_number(fn(x));
+      return fn(x);
    }
 };
 

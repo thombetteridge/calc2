@@ -92,7 +92,7 @@ static auto lx_peek(Lexer& lx) -> char
    return char {};
 }
 
-auto lx_next_token(Lexer& lx) -> Token
+static auto lx_next_token(Lexer& lx) -> Token
 {
    while (is_white(lx.ch)) {
       lx.advance();
@@ -120,7 +120,7 @@ auto lx_next_token(Lexer& lx) -> Token
    case '{': return lx_new_token(lx, Tok_Kind::LBrace);
    case '}': return lx_new_token(lx, Tok_Kind::RBrace);
    case '.' : {
-      if (lx.pos + 1 < lx.src.size() && is_digit (lx.src[lx.pos+1]) )
+      if (is_digit (lx_peek(lx)))
          return lx_new_number(lx);
       else
          return lx_new_token(lx, Tok_Kind::Dot);
@@ -137,9 +137,9 @@ auto lx_next_token(Lexer& lx) -> Token
    UNREACHABLE();
 }
 
-void print_token(Token const& t)
+// clang-format off
+static void print_token(Token const& t)
 {
-   // clang-format off
    switch (t.kind) {
    case Tok_Kind::None:     writeln("Tok Kind: None, Text: ",     t.text); break;
    case Tok_Kind::Eof:      writeln("Tok Kind: Eof, Text: ",      t.text); break;
