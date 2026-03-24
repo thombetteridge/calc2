@@ -111,15 +111,12 @@ template <typename... Args>
    fmt::print("\n");
 }
 
-
-
 template <class... Ts>
 struct overload : Ts... {
    using Ts::operator()...;
 };
 template <class... Ts>
 overload(Ts...) -> overload<Ts...>;
-
 
 template <typename F>
 struct Scoped {
@@ -132,5 +129,4 @@ struct Scoped {
 
 #define STRING_CAT2(arg1, arg2) arg1##arg2
 #define STRING_CAT(arg1, arg2)  STRING_CAT2(arg1, arg2)
-#define scope_exit(code) \
-   auto STRING_CAT(scope_exit_, __LINE__) = Scoped([&]() -> auto { code; })
+#define scope_exit(code)        auto STRING_CAT(scope_exit_, __LINE__) = Scoped([&]() -> auto { code; })
