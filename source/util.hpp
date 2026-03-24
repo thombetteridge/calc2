@@ -35,10 +35,9 @@ struct Panic {
    template <typename... Args>
    [[noreturn]] void operator()(Args&&... args) const
    {
-      fmt::print("\033[31;1mPANIC \033[0m{} :{}: \033[1m", loc.file_name(), loc.line());
+      fmt::print("\033[31;1mPANIC \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
       if constexpr (sizeof...(args) > 0) {
-         (fmt::print("{} ", std::forward<Args>(args)), ...);
-         fmt::print("\n");
+         (fmt::print("{}", std::forward<Args>(args)), ...);
       }
       fmt::print("\033[0m\n");
       std::exit(1);
@@ -55,10 +54,9 @@ struct Todo {
    template <typename... Args>
    [[noreturn]] void operator()(Args&&... args) const
    {
-      fmt::print(stderr, "\033[31;1mTODO \033[0m{} :{}: \033[1m", loc.file_name(), loc.line());
+      fmt::print(stderr, "\033[31;1mTODO \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
       if constexpr (sizeof...(args) > 0) {
-         (fmt::print(stderr, "{} ", std::forward<Args>(args)), ...);
-         fmt::print(stderr, "\n");
+         (fmt::print(stderr, "{}", std::forward<Args>(args)), ...);
       }
       fmt::print(stderr, "\033[0m\n");
       std::exit(1);
@@ -75,10 +73,9 @@ struct Log {
    template <typename... Args>
    [[maybe_unused]] void operator()(Args&&... args) const
    {
-      fmt::print(stderr, "\033[32;1mLOG \033[0m{} :{}: \033[1m", loc.file_name(), loc.line());
+      fmt::print(stderr, "\033[32;1mLOG \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
       if constexpr (sizeof...(args) > 0) {
-         (fmt::print(stderr, "{} ", std::forward<Args>(args)), ...);
-         fmt::print(stderr, "\n");
+         (fmt::print(stderr, "{}", std::forward<Args>(args)), ...);
       }
       fmt::print(stderr, "\033[0m\n");
    }
@@ -94,9 +91,9 @@ struct Warning {
    template <typename... Args>
    [[maybe_unused]] void operator()(Args&&... args) const
    {
-      fmt::print(stderr, "\033[33;1mWARNING \033[0m{} :{}: \033[1m", loc.file_name(), loc.line());
+      fmt::print(stderr, "\033[33;1mWARNING \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
       if constexpr (sizeof...(args) > 0) {
-         (fmt::print(stderr, "{} ", std::forward<Args>(args)), ...);
+         (fmt::print(stderr, "{}", std::forward<Args>(args)), ...);
       }
       fmt::print(stderr, "\033[0m\n");
    }
@@ -106,7 +103,7 @@ template <typename... Args>
 [[maybe_unused]] void writeln(Args&&... args)
 {
    if constexpr (sizeof...(args) > 0) {
-      (fmt::print("{} ", std::forward<Args>(args)), ...);
+      (fmt::print("{}", std::forward<Args>(args)), ...);
    }
    fmt::print("\n");
 }
