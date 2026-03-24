@@ -6,34 +6,42 @@
 using std::string_view;
 using std::vector;
 
+#define Local_Function [[nodiscard]] constexpr static auto
+
 /* ============= LEXER =========== */
 
-static auto is_white(char c) -> bool
+[[nodiscard]] constexpr static auto
+is_white(char c) -> bool
 {
    return c == ' ' || c == '\n' || c == '\t' || c == '\r';
 }
 
-static auto is_alpha(char c) -> bool
+[[nodiscard]] constexpr static auto
+is_alpha(char c) -> bool
 {
    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
-static auto is_digit(char c) -> bool
+[[nodiscard]] constexpr static auto
+is_digit(char c) -> bool
 {
    return c >= '0' && c <= '9';
 }
 
-static auto is_delim(char c) -> bool
+[[nodiscard]] constexpr static auto
+is_delim(char c) -> bool
 {
    return c == ';' || c == ':' || c == '[' || c == ']' || c == '(' || c == ')' || c == '{' || c == '}';
 }
 
-static auto is_operator(char c) -> bool
+[[nodiscard]] constexpr static auto
+is_operator(char c) -> bool
 {
    return c == '+' || c == '-' || c == '*' || c == '/';
 }
 
-static auto lx_new_number(Lexer& lx) -> Token
+[[nodiscard]] constexpr static auto
+lx_new_number(Lexer& lx) -> Token
 {
    size_t const start = lx.pos;
 
@@ -49,7 +57,8 @@ static auto lx_new_number(Lexer& lx) -> Token
    };
 }
 
-static auto lx_new_word(Lexer& lx) -> Token
+[[nodiscard]] constexpr static auto
+lx_new_word(Lexer& lx) -> Token
 {
    size_t const start = lx.pos;
 
@@ -64,7 +73,8 @@ static auto lx_new_word(Lexer& lx) -> Token
    };
 }
 
-static auto lx_new_token(Lexer& lx, Tok_Kind kind) -> Token
+[[nodiscard]] static auto
+lx_new_token(Lexer& lx, Tok_Kind kind) -> Token
 {
    Token tok = {
       .kind = kind,
@@ -74,7 +84,8 @@ static auto lx_new_token(Lexer& lx, Tok_Kind kind) -> Token
    return tok;
 }
 
-static auto lx_new_token2(Lexer& lx, Tok_Kind kind) -> Token
+[[nodiscard]] static auto
+lx_new_token2(Lexer& lx, Tok_Kind kind) -> Token
 {
    Token tok = {
       .kind = kind,
@@ -85,7 +96,8 @@ static auto lx_new_token2(Lexer& lx, Tok_Kind kind) -> Token
    return tok;
 }
 
-static auto lx_peek(Lexer& lx) -> char
+[[nodiscard]] constexpr static auto
+lx_peek(Lexer& lx) -> char
 {
    if (lx.pos + 1 < lx.src.size()) {
       return lx.src[lx.pos + 1];
@@ -93,7 +105,8 @@ static auto lx_peek(Lexer& lx) -> char
    return char {};
 }
 
-static auto lx_next_token(Lexer& lx) -> Token
+[[nodiscard]] constexpr static auto
+lx_next_token(Lexer& lx) -> Token
 {
    while (is_white(lx.ch)) {
       lx.advance();
