@@ -47,7 +47,7 @@ auto main() -> int
    ImFont* mono             = io.Fonts->AddFontFromMemoryTTF(
      static_cast<void*>(JetBrainsMono_Regular_ttf),
      static_cast<int>(JetBrainsMono_Regular_ttf_len),
-     20.0f, &cfg);
+     18.0f, &cfg);
 
    while (!WindowShouldClose()) {
 
