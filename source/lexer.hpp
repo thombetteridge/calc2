@@ -5,7 +5,7 @@
 
 #include "util.hpp"
 
-enum class Tok_Kind : u8 {
+enum class Tok_Kind : uint8 {
    None,
    Eof,
    Unknown,

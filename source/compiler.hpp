@@ -7,7 +7,7 @@
 
 #include "util.hpp"
 
-enum class Op_Kind : u8 {
+enum class Op_Kind : uint8 {
    None,
    Val,
    Word,

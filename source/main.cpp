@@ -28,7 +28,6 @@ auto main() -> int
    std::string            output_text {};
    std::array<char, 2048> input_buffer {};
 
-   SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
    InitWindow(screen_width, screen_height, screen_title);
    scope_exit(CloseWindow());
    SetTargetFPS(30);
@@ -64,12 +63,16 @@ auto main() -> int
 
          ImGui::SetNextWindowPos(ImVec2 { 0, 0 }, ImGuiCond_Always);
          ImGui::SetNextWindowSize(ImVec2 { static_cast<float>(screen_width), static_cast<float>(screen_height) }, ImGuiCond_Always);
-         ImGui::Begin("Calculator", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+         ImGui::Begin(
+           "Calculator", nullptr,
+           ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
          scope_exit(ImGui::End());
 
          // ========================= OUTPUT =========================
          {
-            ImGui::BeginChild("Results", ImVec2 { 0, screen_height * 0.3819660112501453f }, ImGuiChildFlags_None);
+            ImGui::BeginChild("Results",
+                              ImVec2 { 0, screen_height * 0.3819660112501453f },
+                              ImGuiChildFlags_None);
             scope_exit(ImGui::EndChild());
 
             ImGui::Text("Output: ");
@@ -80,12 +83,15 @@ auto main() -> int
 
             ImVec2 const out_avail = ImGui::GetContentRegionAvail();
 
-            ImGui::BeginChild("OutputText", ImVec2 { out_avail.x, out_avail.y }, ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
+            ImGui::BeginChild("OutputText",
+                              ImVec2 { out_avail.x, out_avail.y },
+                              ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
             scope_exit(ImGui::EndChild());
 
             ImVec2 const inner_avail = ImGui::GetContentRegionAvail();
 
-            ImGui::InputTextMultiline("##output", output_text.data(),
+            ImGui::InputTextMultiline("##output",
+                                      output_text.data(),
                                       output_text.size(),
                                       ImVec2 { inner_avail.x, inner_avail.y },
                                       ImGuiInputTextFlags_ReadOnly);
