@@ -25,7 +25,7 @@ static auto is_digit(char c) -> bool
 
 static auto is_delim(char c) -> bool
 {
-   return c == ';' || c == ':' || c == '[' || c == ']';
+   return c == ';' || c == ':' || c == '[' || c == ']' || c == '(' || c == ')' || c == '{' || c == '}';
 }
 
 static auto is_operator(char c) -> bool

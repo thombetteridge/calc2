@@ -2,8 +2,6 @@
 #include "pch/pch_stdc++.hpp"
 
 #include <algorithm>
-#include <cassert>
-#include <charconv>
 #include <cmath>
 #include <cstdio>
 #include <numbers>
@@ -18,9 +16,9 @@
 #include <fmt/format.h>
 
 #include "calc2.hpp"
+#include "compiler.hpp"
 #include "lexer.hpp"
 #include "util.hpp"
-#include "compiler.hpp"
 
 /* declutter */
 
@@ -30,176 +28,9 @@ using std::string_view;
 using std::unordered_map;
 using std::vector;
 
-/* ============= COMPILE =========== */
-
-
 using User_Words = unordered_map<string, vector<Op_Code>>;
 
-unordered_map<string_view, Op_Code> const intrinsics = {
-   { "dup", Op_Code { .kind = Op_Kind::Dup } },
-   { "swap", Op_Code { .kind = Op_Kind::Swap } },
-};
-
-
-static auto sv_to_double(string_view const sv) -> optional<double>
-{
-   double     value {};
-   auto const result = std::from_chars(
-     sv.data(),
-     sv.data() + sv.size(),
-     value);
-
-   if (result.ec != std::errc()) {
-      return std::nullopt;
-   }
-   return value;
-}
-
-void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& i)
-{
-   auto const& tok = tokens[i];
-   switch (tok.kind) {
-   case Tok_Kind::None:
-      Panic {}("Tok None");
-
-   case Tok_Kind::Number: {
-      auto const opt = sv_to_double(tok.text);
-      if (opt)
-         out.push_back({ .kind = Op_Kind::Val, .value = opt.value() });
-      else
-         Warning {}("Malformed number: ", tok.text);
-      break;
-   }
-
-   case Tok_Kind::Word:
-      // we have to do it like this beacuse intrinsics is const
-      {
-         auto const it = intrinsics.find(tok.text);
-         if (it != intrinsics.end()) {
-            out.push_back(it->second);
-            break;
-         }
-         else {
-            out.push_back({ .kind = Op_Kind::Word, .text = string(tok.text) });
-         }
-         break;
-      }
-
-   case Tok_Kind::Arrow: {
-      ++i;
-      size_t       count = 0;
-      size_t const start = i;
-      while (i < tokens.size() && tokens[i].kind == Tok_Kind::Word && tokens[i].kind != Tok_Kind::Semi) {
-         ++count;
-         ++i;
-      }
-
-      if (tokens[i].kind != Tok_Kind::Semi) {
-         break;
-      }
-
-      string idents {};
-      for (size_t j = start; j < i + count; ++j) {
-         idents += string(tokens[j].text) + ' ';
-      }
-
-      Op_Code op = { .kind = Op_Kind::Var, .value = static_cast<double>(count), .text = idents };
-
-      out.push_back(op);
-      break;
-   }
-   case Tok_Kind::Plus:
-      out.push_back({ .kind = Op_Kind::Add });
-      break;
-   case Tok_Kind::Minus:
-      out.push_back({ .kind = Op_Kind::Sub });
-      break;
-   case Tok_Kind::Slash:
-      out.push_back({ .kind = Op_Kind::Div });
-      break;
-   case Tok_Kind::Star:
-      out.push_back({ .kind = Op_Kind::Mul });
-      break;
-   case Tok_Kind::Tilda:
-      out.push_back({ .kind = Op_Kind::Swap });
-      break;
-   case Tok_Kind::Dot:
-      out.push_back({ .kind = Op_Kind::Dup });
-      break;
-   case Tok_Kind::Unknown:
-      Warning {}("Unknown token: ", tok.text);
-      break;
-   case Tok_Kind::Colon:
-      Warning {}("unexpected ':'");
-      break;
-   case Tok_Kind::Semi:
-      Warning {}("unexpected ';'");
-      break;
-   case Tok_Kind::LBracket:
-      Warning {}("TODO: LBracket");
-      break;
-   case Tok_Kind::RBracket:
-      Warning {}("TODO: RBracket");
-      break;
-   case Tok_Kind::LParen:
-      Warning {}("TODO: LParen");
-      break;
-   case Tok_Kind::RParen:
-      Warning {}("TODO: RParen");
-      break;
-   case Tok_Kind::LBrace:
-      Warning {}("TODO: LBrace");
-      break;
-   case Tok_Kind::RBrace:
-      Warning {}("TODO: RBrace");
-      break;
-   case Tok_Kind::Eof:
-      break;
-   }
-}
-
-void compile(
-  vector<Token> const& tokens,
-  vector<Op_Code>&     op_codes,
-  User_Words&          user_words)
-{
-   for (size_t i = 0; i < tokens.size(); ++i) {
-      auto const& tok = tokens[i];
-
-      if (tok.kind == Tok_Kind::Eof) {
-         break;
-      }
-
-      /* new user words */
-      if (tok.kind == Tok_Kind::Colon) {
-         if (i + 1 < tokens.size() && tokens[i + 1].kind != Tok_Kind::Word) {
-            Warning {}("missing word name after ':' ");
-            break;
-         }
-
-         string name(tokens[i + 1].text);
-         i += 2; /* skip "name :" */
-
-         vector<Op_Code> body;
-         while (i < tokens.size() && tokens[i].kind != Tok_Kind::Semi) {
-            compile_one(body, tokens, i);
-            ++i;
-         }
-
-         if (i >= tokens.size() || tokens[i].kind != Tok_Kind::Semi) {
-            Warning {}("missing ';' after definition of", name);
-            break;
-         }
-
-         user_words[name] = std::move(body);
-         continue;
-      }
-
-      compile_one(op_codes, tokens, i);
-   }
-}
 /* ===========  EVAL ============== */
-
 
 struct Add_Vistor {
    auto operator()(double x, double y) -> optional<Value>
@@ -404,7 +235,9 @@ struct Program {
             auto split_string = [](std::string_view& s, char delim) -> std::string_view {
                auto const pos = s.find(delim);
                if (pos == std::string_view::npos) {
-                  return {};
+                  auto const result = s;
+                  s                 = {};
+                  return result;
                }
 
                auto const result = s.substr(0, pos);
@@ -417,8 +250,10 @@ struct Program {
 
             while (!vars_sv.empty()) {
                string_view ident = split_string(vars_sv, ' ');
-               var_idents.emplace_back(ident);
+               if (!ident.empty())
+                  var_idents.emplace_back(ident);
             }
+
             auto const num = static_cast<size_t>(op.value);
             for (size_t i = 0; i < std::min(num, var_idents.size()); ++i) {
                auto const opt = stack.pop();
