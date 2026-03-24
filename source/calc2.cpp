@@ -8,7 +8,6 @@
 #include <cstdio>
 #include <numbers>
 #include <optional>
-#include <span>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -21,6 +20,7 @@
 #include "calc2.hpp"
 #include "lexer.hpp"
 #include "util.hpp"
+#include "compiler.hpp"
 
 /* declutter */
 
@@ -32,25 +32,6 @@ using std::vector;
 
 /* ============= COMPILE =========== */
 
-enum class Op_Kind : u8 {
-   None,
-   Val,
-   Word,
-   Add,
-   Sub,
-   Mul,
-   Div,
-   Dup,
-   Swap,
-   Var,
-   Eof,
-};
-
-struct Op_Code {
-   Op_Kind kind;
-   double  value {};
-   string  text {};
-};
 
 using User_Words = unordered_map<string, vector<Op_Code>>;
 
@@ -60,9 +41,18 @@ unordered_map<string_view, Op_Code> const intrinsics = {
 };
 
 
-void recurive_parse(vector<Op_Code>& out, std::span<Token> const& tokens)
+static auto sv_to_double(string_view const sv) -> optional<double>
 {
-   
+   double     value {};
+   auto const result = std::from_chars(
+     sv.data(),
+     sv.data() + sv.size(),
+     value);
+
+   if (result.ec != std::errc()) {
+      return std::nullopt;
+   }
+   return value;
 }
 
 void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& i)
@@ -73,18 +63,11 @@ void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& i)
       Panic {}("Tok None");
 
    case Tok_Kind::Number: {
-      double     value {};
-      auto const result = std::from_chars(
-        tok.text.data(),
-        tok.text.data() + tok.text.size(),
-        value);
-
-      if (result.ec != std::errc()) {
+      auto const opt = sv_to_double(tok.text);
+      if (opt)
+         out.push_back({ .kind = Op_Kind::Val, .value = opt.value() });
+      else
          Warning {}("Malformed number: ", tok.text);
-         break;
-      }
-
-      out.push_back({ .kind = Op_Kind::Val, .value = value });
       break;
    }
 
@@ -217,7 +200,6 @@ void compile(
 }
 /* ===========  EVAL ============== */
 
-using Value = std::variant<double>;
 
 struct Add_Vistor {
    auto operator()(double x, double y) -> optional<Value>
@@ -288,7 +270,6 @@ struct Stack {
    auto begin() { return data.begin(); }
    auto end() { return data.end(); }
 };
-
 
 struct Frame {
    unordered_map<string, Value> locals;
@@ -369,7 +350,7 @@ struct Program {
             }
 
             auto const& [x, y] = *opt;
-            auto const result = std::visit(Div_Vistor {}, x, y);
+            auto const result  = std::visit(Div_Vistor {}, x, y);
             if (result)
                stack.push(*result);
             else

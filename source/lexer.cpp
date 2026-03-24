@@ -53,7 +53,8 @@ static auto lx_new_word(Lexer& lx) -> Token
 {
    size_t const start = lx.pos;
 
-   while (!(is_white(lx.ch) || is_delim(lx.ch) || is_operator(lx.ch) || lx.ch == '\000')) {
+   // Boolean expression can be simplified by DeMorgan's theorem (fix available) (clang-tidy)
+   while (!is_white(lx.ch) && !is_delim(lx.ch) && !is_operator(lx.ch) && lx.ch != '\000') {
       lx.advance();
    }
 

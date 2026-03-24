@@ -19,7 +19,7 @@ target("rlimgui")
 
 target("stack_calc")
     set_languages("c++20")
-    set_warnings("all", "extra")
+    set_warnings("all", "extra", "pedantic")
     set_kind("binary")
 
     set_pcxxheader("source/pch/pch_stdc++.hpp")
