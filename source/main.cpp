@@ -110,8 +110,8 @@ auto main() -> int
                                           ImVec2 { avail.x - right_margin, avail.y - bottom_margin },
                                           ImGuiInputTextFlags_AllowTabInput)) {
 
-               output_text        = run_calc(input_buffer.data(), input_buffer.size());
-               output_text.back() = '\000';
+               output_text = run_calc(input_buffer.data(), input_buffer.size());
+               output_text += '\000'; // make sure null terminate
             }
          }
       }
