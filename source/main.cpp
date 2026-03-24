@@ -41,13 +41,14 @@ auto main() -> int
 
    ImFontConfig cfg {};
    cfg.OversampleH          = 2;
-   cfg.OversampleV          = 1;
+   cfg.OversampleV          = 2;
    cfg.PixelSnapH           = true;
+   cfg.PixelSnapV           = true;
    cfg.FontDataOwnedByAtlas = false;
    ImFont* mono             = io.Fonts->AddFontFromMemoryTTF(
      static_cast<void*>(JetBrainsMono_Regular_ttf),
      static_cast<int>(JetBrainsMono_Regular_ttf_len),
-     18.0f, &cfg);
+     20.0f, &cfg);
 
    while (!WindowShouldClose()) {
 
@@ -85,7 +86,7 @@ auto main() -> int
             ImVec2 const inner_avail = ImGui::GetContentRegionAvail();
 
             ImGui::InputTextMultiline("##output", output_text.data(),
-                                      static_cast<int>(output_text.size()),
+                                      output_text.size(),
                                       ImVec2 { inner_avail.x, inner_avail.y },
                                       ImGuiInputTextFlags_ReadOnly);
          }
@@ -106,12 +107,12 @@ auto main() -> int
 
             if (ImGui::InputTextMultiline("##editor",
                                           input_buffer.data(),
-                                          static_cast<int>(input_buffer.size()),
+                                          input_buffer.size(),
                                           ImVec2 { avail.x - right_margin, avail.y - bottom_margin },
                                           ImGuiInputTextFlags_AllowTabInput)) {
 
                output_text = run_calc(input_buffer.data(), input_buffer.size());
-               output_text += '\000'; // make sure null terminate
+               output_text += '\000'; // make sure null terminate for imgui output
             }
          }
       }
