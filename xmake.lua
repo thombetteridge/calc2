@@ -4,25 +4,28 @@ add_rules("mode.debug", "mode.release")
 add_requires("raylib")
 add_requires("fmt")
 
-target("imgui")
-    set_kind("static")
-    add_files("third_party/imgui/*.cpp")
-    add_includedirs("third_party/imgui/", {public = true})
-    set_warnings("none")
+target("imgui",
+    {
+        kind = "static",
+        files = "third_party/imgui/*.cpp",
+        includedirs = { "third_party/imgui/", { public = true } },
+        warnings = "none",
+    })
 
-target("rlimgui")
-    set_kind("static")
-    add_files("third_party/rlimgui/*.cpp")
-    add_includedirs("third_party/imgui")
-    add_includedirs("third_party/rlimgui/", {public = true})
-    add_packages("raylib")
-    set_warnings("none")
+target("rlimgui", 
+    {
+        kind = "static",
+        files = "third_party/rlimgui/*.cpp",
+        includedirs = { "third_party/imgui", "third_party/rlimgui/", { public = true } },
+        packages = "raylib",
+        warnings = "none",
+    })
 
 target("stack_calc")
 
     if is_mode("debug") then
-        set_policy("build.sanitizer.address", true)
-        set_policy("build.sanitizer.undefined", true)
+        -- set_policy("build.sanitizer.address", true)
+        -- set_policy("build.sanitizer.undefined", true)
         set_symbols("debug")
         set_optimize("none")
     end
