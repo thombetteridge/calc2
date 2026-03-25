@@ -5,6 +5,8 @@ CompileFlags:
 
 Diagnostics:
   ClangTidy:
+    # FastCheckFilter: None
+    FastCheckFilter: Loose
     Add: [
       modernize-*,
       performance-*,

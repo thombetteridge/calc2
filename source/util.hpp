@@ -118,14 +118,23 @@ overload(Ts...) -> overload<Ts...>;
 template <typename F>
 struct Scoped {
    F f;
-   Scoped(F f)
+   explicit Scoped(F f) noexcept
        : f(f)
    { }
-   ~Scoped() { f(); }
+   ~Scoped() noexcept { std::move(f); }
+   Scoped(Scoped const&)         = delete;
+   Scoped(Scoped&&)              = delete;
+   auto operator=(Scoped const&) = delete;
+   auto operator=(Scoped&&)      = delete;
 };
+
+template <class F>
+Scoped(F) -> Scoped<F>;
 
 #define STRING_CAT2(arg1, arg2) arg1##arg2
 #define STRING_CAT(arg1, arg2)  STRING_CAT2(arg1, arg2)
-//clang-format off
-#define scope_exit(code)        auto STRING_CAT(scope_exit_, __LINE__) = Scoped{ [&] () -> auto { code; }}
-//clang-format on
+#define scope_exit(code)                           \
+   auto STRING_CAT(scope_exit_, __LINE__) = Scoped \
+   {                                               \
+      [&]() -> auto { code; }                      \
+   }

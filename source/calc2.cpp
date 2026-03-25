@@ -249,7 +249,7 @@ struct Program {
             vector<string> var_idents;
 
             while (!vars_sv.empty()) {
-               string_view ident = split_string(vars_sv, ' ');
+               string_view const ident = split_string(vars_sv, ' ');
                if (!ident.empty())
                   var_idents.emplace_back(ident);
             }

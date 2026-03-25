@@ -1,6 +1,5 @@
+#include "pch/pch_stdc++.hpp"
 
-
-#include "util.hpp"
 #include <charconv>
 #include <optional>
 #include <string>
@@ -16,6 +15,7 @@ using std::vector;
 
 #include "compiler.hpp"
 #include "lexer.hpp"
+#include "util.hpp"
 
 struct Parse_Error {
    bool             error {};
