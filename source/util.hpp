@@ -117,11 +117,11 @@ overload(Ts...) -> overload<Ts...>;
 
 template <typename F>
 struct Scoped {
-   F f;
+   F cleanup;
    explicit Scoped(F f) noexcept
-       : f(f)
+       : cleanup(f)
    { }
-   ~Scoped() noexcept { std::move(f); }
+   ~Scoped() noexcept { std::move(cleanup); }
    Scoped(Scoped const&)         = delete;
    Scoped(Scoped&&)              = delete;
    auto operator=(Scoped const&) = delete;
