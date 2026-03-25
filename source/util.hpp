@@ -119,9 +119,9 @@ template <typename F>
 struct Scoped {
    F cleanup;
    explicit Scoped(F f) noexcept
-       : cleanup(f)
+       : cleanup(std::move(f))
    { }
-   ~Scoped() noexcept { std::move(cleanup); }
+   ~Scoped() noexcept { cleanup(); }
    Scoped(Scoped const&)         = delete;
    Scoped(Scoped&&)              = delete;
    auto operator=(Scoped const&) = delete;
