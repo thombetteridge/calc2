@@ -66,7 +66,7 @@ void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& inde
    case Tok_Kind::Number: {
       auto const opt = sv_to_double(tok.text);
       if (opt) {
-         out.push_back({ .kind = Op_Kind::Val, .value = opt.value() });
+         out.emplace_back(Op_Code { .kind = Op_Kind::Val, .value = opt.value() });
          ++index;
       }
       else
@@ -79,12 +79,12 @@ void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& inde
       {
          auto const it = intrinsics.find(tok.text);
          if (it != intrinsics.end()) {
-            out.push_back(it->second);
+            out.emplace_back(it->second);
             ++index;
             break;
          }
          else {
-            out.push_back({ .kind = Op_Kind::Word, .text = string(tok.text) });
+            out.emplace_back(Op_Code { .kind = Op_Kind::Word, .text = string(tok.text) });
             ++index;
          }
          break;
@@ -100,7 +100,7 @@ void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& inde
       }
 
       if (tokens[index].kind != Tok_Kind::Semi) {
-         Warning{}("Missing ; for ->");
+         Warning {}("Missing ; for ->");
          ++index;
          break;
       }
@@ -110,34 +110,32 @@ void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& inde
          idents += string(tokens[j].text) + ' ';
       }
 
-      Op_Code op = { .kind = Op_Kind::Var, .value = static_cast<double>(count), .text = idents };
-
-      out.push_back(op);
+      out.emplace_back(Op_Code { .kind = Op_Kind::Var, .value = static_cast<double>(count), .text = idents });
       ++index; // consume the ';'
       break;
    }
    case Tok_Kind::Plus:
-      out.push_back({ .kind = Op_Kind::Add });
+      out.emplace_back(Op_Code { .kind = Op_Kind::Add });
       ++index;
       break;
    case Tok_Kind::Minus:
-      out.push_back({ .kind = Op_Kind::Sub });
+      out.emplace_back(Op_Code { .kind = Op_Kind::Sub });
       ++index;
       break;
    case Tok_Kind::Slash:
-      out.push_back({ .kind = Op_Kind::Div });
+      out.emplace_back(Op_Code { .kind = Op_Kind::Div });
       ++index;
       break;
    case Tok_Kind::Star:
-      out.push_back({ .kind = Op_Kind::Mul });
+      out.emplace_back(Op_Code { .kind = Op_Kind::Mul });
       ++index;
       break;
    case Tok_Kind::Tilda:
-      out.push_back({ .kind = Op_Kind::Swap });
+      out.emplace_back(Op_Code { .kind = Op_Kind::Swap });
       ++index;
       break;
    case Tok_Kind::Dot:
-      out.push_back({ .kind = Op_Kind::Dup });
+      out.emplace_back(Op_Code { .kind = Op_Kind::Dup });
       ++index;
       break;
    case Tok_Kind::Unknown:
@@ -318,16 +316,16 @@ static auto emit_binary_op(vector<Op_Code>& out, Token const& tok) -> Parse_Erro
 {
    switch (tok.kind) {
    case Tok_Kind::Plus:
-      out.push_back({ .kind = Op_Kind::Add });
+      out.emplace_back(Op_Code { .kind = Op_Kind::Add });
       return {};
    case Tok_Kind::Minus:
-      out.push_back({ .kind = Op_Kind::Sub });
+      out.emplace_back(Op_Code { .kind = Op_Kind::Sub });
       return {};
    case Tok_Kind::Star:
-      out.push_back({ .kind = Op_Kind::Mul });
+      out.emplace_back(Op_Code { .kind = Op_Kind::Mul });
       return {};
    case Tok_Kind::Slash:
-      out.push_back({ .kind = Op_Kind::Div });
+      out.emplace_back(Op_Code { .kind = Op_Kind::Div });
       return {};
    default:
       return { "expected binary operator" };
@@ -378,7 +376,7 @@ auto parse_primary(vector<Op_Code>& out, vector<Token> const& tokens, size_t& in
    if (tok.kind == Tok_Kind::Number) {
       auto const opt = sv_to_double(tok.text);
       if (opt)
-         out.push_back({ .kind = Op_Kind::Val, .value = opt.value() });
+         out.emplace_back(Op_Code { .kind = Op_Kind::Val, .value = opt.value() });
       else
          Warning {}("Malformed Number");
 
@@ -392,7 +390,7 @@ auto parse_primary(vector<Op_Code>& out, vector<Token> const& tokens, size_t& in
       // if (it != intrinsics.end())
       //    out.push_back(it->second);
       // else
-      out.push_back({ .kind = Op_Kind::Word, .text = string(tok.text) });
+      out.emplace_back(Op_Code { .kind = Op_Kind::Word, .text = string(tok.text) });
 
       ++index;
       return {};
