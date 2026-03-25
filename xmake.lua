@@ -4,6 +4,18 @@ add_rules("mode.debug", "mode.release")
 add_requires("raylib")
 add_requires("fmt")
 
+
+if is_mode("debug") then
+    if is_mode("debug") and is_plat("linux") then
+        add_defines("_GLIBCXX_ASSERTIONS")
+        set_policy("build.sanitizer.undefined", true)
+    end
+    set_policy("build.sanitizer.address", true)       
+    set_symbols("debug")
+    set_optimize("none")
+end
+
+
 target("imgui",
     {
         kind = "static",
@@ -23,12 +35,6 @@ target("rlimgui",
 
 target("stack_calc")
 
-    if is_mode("debug") then
-        -- set_policy("build.sanitizer.address", true)
-        -- set_policy("build.sanitizer.undefined", true)
-        set_symbols("debug")
-        set_optimize("none")
-    end
 
     if is_mode("debug") and is_plat("linux") then
         add_defines("_GLIBCXX_ASSERTIONS")
