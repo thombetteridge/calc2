@@ -349,8 +349,8 @@ static auto value_to_string(Value const& value) -> string
 {
    return std::visit(overload {
       [](double x) {
-         // return fmt::format("{:.6g}", x);
-         return fmt::format("{}", x);
+         static constexpr double precision = 1e12;
+         return fmt::format("{:.12g}", std::round(x*precision) / precision);
       },
       [] (auto v) {
          (void)v; UNREACHABLE() ;
