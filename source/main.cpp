@@ -8,11 +8,15 @@
 #include "calc2.hpp"
 #include "util.hpp"
 
-#include "embedded_font.inc"
+
+extern uint8 JetBrainsMono_Regular_ttf[];
+extern uint32 JetBrainsMono_Regular_ttf_len;
 
 static constexpr int  screen_width  = 400;
 static constexpr int  screen_height = 600;
 static constexpr auto screen_title  = "Calc2";
+
+
 
 auto main() -> int
 {
