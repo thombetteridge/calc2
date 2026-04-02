@@ -15,22 +15,30 @@ static constexpr int  screen_width  = 400;
 static constexpr int  screen_height = 600;
 static constexpr auto screen_title  = "Calc2";
 
+static constexpr auto bg_colour   = IM_COL32(0, 43, 54, 255);
+static constexpr auto bg_colour2  = IM_COL32(7, 54, 66, 255);
+static constexpr auto text_colour = IM_COL32(238, 232, 213, 255);
+
+
 auto main() -> int
 {
+   std::string            output_text {};
+   std::array<char, 2048> input_buffer {};
 
-   std::string            output_text { };
-   std::array<char, 2048> input_buffer { };
-
+   SetConfigFlags(FLAG_WINDOW_TOPMOST);
    InitWindow(screen_width, screen_height, screen_title);
    scope_exit(CloseWindow());
+   
+   SetExitKey(0);
    SetTargetFPS(30);
 
-   rlImGuiSetup(false);
+   rlImGuiSetup(true);
    scope_exit(rlImGuiShutdown());
+
 
    ImGuiIO& io = ImGui::GetIO();
 
-   ImFontConfig cfg { };
+   ImFontConfig cfg {};
    cfg.OversampleH          = 2;
    cfg.OversampleV          = 2;
    cfg.PixelSnapH           = true;
@@ -55,7 +63,7 @@ auto main() -> int
 
          ImGui::SetNextWindowPos(ImVec2 { 0, 0 }, ImGuiCond_Always);
          ImGui::SetNextWindowSize(ImVec2 { static_cast<float>(screen_width), static_cast<float>(screen_height) }, ImGuiCond_Always);
-         ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(253, 246, 227, 255));
+         ImGui::PushStyleColor(ImGuiCol_WindowBg, bg_colour);
          scope_exit(ImGui::PopStyleColor());
          ImGui::Begin(
             "Calculator", nullptr,
@@ -64,7 +72,7 @@ auto main() -> int
 
          // ========================= OUTPUT =========================
          {
-            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 43, 54, 255));
+            ImGui::PushStyleColor(ImGuiCol_Text, text_colour);
             scope_exit(ImGui::PopStyleColor());
             ImGui::BeginChild("Results",
                               ImVec2 { 0, screen_height * 0.3819660112501453f },
@@ -72,9 +80,9 @@ auto main() -> int
             scope_exit(ImGui::EndChild());
 
             ImGui::Text("Output: ");
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(253, 246, 227, 255));
-            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 43, 54, 255));
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2 { 4, 4 });
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, bg_colour);
+            ImGui::PushStyleColor(ImGuiCol_Text, text_colour);
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2 { 8, 8 });
             scope_exit(ImGui::PopStyleColor(2));
             scope_exit(ImGui::PopStyleVar());
 
@@ -96,16 +104,16 @@ auto main() -> int
 
          // ====================== INPUT WINDOW ======================
          {
-            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 43, 54, 255));
+            ImGui::PushStyleColor(ImGuiCol_Text, text_colour);
             scope_exit(ImGui::PopStyleColor());
             ImGui::BeginChild("Editor", ImVec2 { 0, 0 }, ImGuiChildFlags_None);
             scope_exit(ImGui::EndChild());
 
             ImGui::Text("Input: ");
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2 { 4, 4 });
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2 { 8, 8 });
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 { 4, 4 });
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(238, 232, 213, 255));
-            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 43, 54, 255));
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, bg_colour2);
+            ImGui::PushStyleColor(ImGuiCol_Text, text_colour);
             scope_exit(ImGui::PopStyleVar(2));
             scope_exit(ImGui::PopStyleColor(2));
 
