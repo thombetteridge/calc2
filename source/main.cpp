@@ -18,14 +18,6 @@ static constexpr auto screen_title  = "Calc2";
 auto main() -> int
 {
 
-   // constexpr auto input = ":sq . *;"
-   //                        ": hypot sq ~ sq + sqrt ;"
-   //                        "3 4 hypot ";
-
-   // std::cout << run_calc(input);
-   // Initialization
-   //--------------------------------------------------------------------------------------
-   //
    std::string            output_text { };
    std::array<char, 2048> input_buffer { };
 
@@ -45,9 +37,9 @@ auto main() -> int
    cfg.PixelSnapV           = true;
    cfg.FontDataOwnedByAtlas = false;
    ImFont* mono             = io.Fonts->AddFontFromMemoryTTF(
-     static_cast<void*>(JetBrainsMono_Regular_ttf),
-     static_cast<int>(JetBrainsMono_Regular_ttf_len),
-     20.0f, &cfg);
+      static_cast<void*>(JetBrainsMono_Regular_ttf),
+      static_cast<int>(JetBrainsMono_Regular_ttf_len),
+      20.0f, &cfg);
 
    while (!WindowShouldClose()) {
 
@@ -66,8 +58,8 @@ auto main() -> int
          ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(253, 246, 227, 255));
          scope_exit(ImGui::PopStyleColor());
          ImGui::Begin(
-           "Calculator", nullptr,
-           ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+            "Calculator", nullptr,
+            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
          scope_exit(ImGui::End());
 
          // ========================= OUTPUT =========================
