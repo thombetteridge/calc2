@@ -13,105 +13,105 @@ using std::vector;
 [[nodiscard]] constexpr static auto
 is_white(char c) -> bool
 {
-   return c == ' ' || c == '\n' || c == '\t' || c == '\r';
+  return c == ' ' || c == '\n' || c == '\t' || c == '\r';
 }
 
 [[nodiscard]] constexpr static auto
 is_alpha(char c) -> bool
 {
-   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
 [[nodiscard]] constexpr static auto
 is_digit(char c) -> bool
 {
-   return c >= '0' && c <= '9';
+  return c >= '0' && c <= '9';
 }
 
 [[nodiscard]] constexpr static auto
 is_delim(char c) -> bool
 {
-   return c == ';' || c == ':' || c == '[' || c == ']' || c == '(' || c == ')' || c == '{' || c == '}';
+  return c == ';' || c == ':' || c == '[' || c == ']' || c == '(' || c == ')' || c == '{' || c == '}';
 }
 
 [[nodiscard]] constexpr static auto
 is_operator(char c) -> bool
 {
-   return c == '+' || c == '-' || c == '*' || c == '/';
+  return c == '+' || c == '-' || c == '*' || c == '/';
 }
 
 [[nodiscard]] constexpr static auto
 lx_new_number(Lexer& lx) -> Token
 {
-   size_t const start = lx.pos;
+  size_t const start = lx.pos;
 
-   if (lx.ch == '-')
-      lx.advance();
+  if (lx.ch == '-')
+    lx.advance();
 
-   while (is_digit(lx.ch) || lx.ch == '.' || lx.ch == 'e')
-      lx.advance();
+  while (is_digit(lx.ch) || lx.ch == '.' || lx.ch == 'e')
+    lx.advance();
 
-   return Token {
-      .kind = Tok_Kind::Number,
-      .text = string_view(lx.src.substr(start, std::max(lx.pos - start, static_cast<size_t>(1)))),
-   };
+  return Token {
+    .kind = Tok_Kind::Number,
+    .text = string_view(lx.src.substr(start, std::max(lx.pos - start, static_cast<size_t>(1)))),
+  };
 }
 
 [[nodiscard]] constexpr static auto
 lx_new_word(Lexer& lx) -> Token
 {
-   size_t const start = lx.pos;
+  size_t const start = lx.pos;
 
-   // Boolean expression can be simplified by DeMorgan's theorem (fix available) (clang-tidy)
-   while (!is_white(lx.ch) && !is_delim(lx.ch) && !is_operator(lx.ch) && lx.ch != '\000') {
-      lx.advance();
-   }
+  // Boolean expression can be simplified by DeMorgan's theorem (fix available) (clang-tidy)
+  while (!is_white(lx.ch) && !is_delim(lx.ch) && !is_operator(lx.ch) && lx.ch != '\000') {
+    lx.advance();
+  }
 
-   return Token {
-      .kind = Tok_Kind::Word,
-      .text = string_view(lx.src.substr(start, std::max(lx.pos - start, static_cast<size_t>(1)))),
-   };
+  return Token {
+    .kind = Tok_Kind::Word,
+    .text = string_view(lx.src.substr(start, std::max(lx.pos - start, static_cast<size_t>(1)))),
+  };
 }
 
 [[nodiscard]] static auto
 lx_new_token(Lexer& lx, Tok_Kind kind) -> Token
 {
-   Token tok = {
-      .kind = kind,
-      .text = string_view(lx.src.substr(lx.pos, 1)),
-   };
-   lx.advance();
-   return tok;
+  Token tok = {
+    .kind = kind,
+    .text = string_view(lx.src.substr(lx.pos, 1)),
+  };
+  lx.advance();
+  return tok;
 }
 
 [[nodiscard]] static auto
 lx_new_token2(Lexer& lx, Tok_Kind kind) -> Token
 {
-   Token tok = {
-      .kind = kind,
-      .text = string_view(lx.src.substr(lx.pos, 2)),
-   };
-   lx.advance();
-   lx.advance();
-   return tok;
+  Token tok = {
+    .kind = kind,
+    .text = string_view(lx.src.substr(lx.pos, 2)),
+  };
+  lx.advance();
+  lx.advance();
+  return tok;
 }
 
 [[nodiscard]] constexpr static auto
 lx_peek(Lexer& lx) -> char
 {
-   if (lx.pos + 1 < lx.src.size()) {
-      return lx.src[lx.pos + 1];
-   }
-   return char {};
+  if (lx.pos + 1 < lx.src.size()) {
+    return lx.src[lx.pos + 1];
+  }
+  return char {};
 }
 
 [[nodiscard]] constexpr static auto
 lx_next_token(Lexer& lx) -> Token
 {
-   while (is_white(lx.ch)) {
-      lx.advance();
-   }
-   // clang-format off
+  while (is_white(lx.ch)) {
+    lx.advance();
+  }
+  // clang-format off
    switch (lx.ch) {
    case '\0': return Token { .kind = Tok_Kind::Eof, .text = string_view("EOF") };
    case '+': return lx_new_token(lx, Tok_Kind::Plus);
@@ -139,16 +139,16 @@ lx_next_token(Lexer& lx) -> Token
       else
          return lx_new_token(lx, Tok_Kind::Dot);
    }
-      // clang-format on
-   default:
-      if (is_digit(lx.ch))
-         return lx_new_number(lx);
-      else if (is_alpha(lx.ch))
-         return lx_new_word(lx);
-      else
-         return lx_new_token(lx, Tok_Kind::Unknown);
-   }
-   UNREACHABLE();
+    // clang-format on
+  default:
+    if (is_digit(lx.ch))
+      return lx_new_number(lx);
+    else if (is_alpha(lx.ch))
+      return lx_new_word(lx);
+    else
+      return lx_new_token(lx, Tok_Kind::Unknown);
+  }
+  UNREACHABLE();
 }
 
 // clang-format off
@@ -177,7 +177,7 @@ static void print_token(Token const& t)
    case Tok_Kind::RBrace:   writeln("Tok Kind: RBrace, Text: ",   t.text); break;
    }
 
-   // clang-format on
+  // clang-format on
 }
 
 //======================================//
@@ -188,32 +188,32 @@ Lexer::Lexer(char const* src, size_t n)
 
 void Lexer::advance()
 {
-   if (read_pos >= src.size()) {
-      ch = '\000';
-      return;
-   }
-   pos = read_pos;
-   ch  = src[pos];
-   ++read_pos;
+  if (read_pos >= src.size()) {
+    ch = '\000';
+    return;
+  }
+  pos = read_pos;
+  ch  = src[pos];
+  ++read_pos;
 }
 
 auto Lexer::get_tokens() -> vector<Token>
 {
-   vector<Token> result;
+  vector<Token> result;
 
-   this->advance();
+  this->advance();
 
-   Token tok;
-   do {
-      tok = lx_next_token(*this);
-      result.push_back(tok);
-   } while (tok.kind != Tok_Kind::Eof);
+  Token tok;
+  do {
+    tok = lx_next_token(*this);
+    result.push_back(tok);
+  } while (tok.kind != Tok_Kind::Eof);
 
-   fmt::print("=====Tokens=====\n");
+  fmt::print("=====Tokens=====\n");
 
-   for (auto const& t : result) {
-      print_token(t);
-   }
+  for (auto const& t : result) {
+    print_token(t);
+  }
 
-   return result;
+  return result;
 }

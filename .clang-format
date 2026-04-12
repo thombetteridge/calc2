@@ -1,15 +1,15 @@
 BasedOnStyle: Webkit
-IndentWidth: 3
-ContinuationIndentWidth: 3
+IndentWidth: 2
+ContinuationIndentWidth: 2
 ColumnLimit: 0
 BreakBeforeBraces: Custom
 BraceWrapping:
     AfterClass: false
     AfterCaseLabel: false
     AfterControlStatement: false
-    AfterEnum: false
+    AfterEnum: true
     AfterFunction: true
-    AfterStruct: false
+    AfterStruct: true
     AfterUnion: false
     BeforeLambdaBody: false
     BeforeWhile: false
