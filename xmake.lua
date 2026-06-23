@@ -4,40 +4,40 @@ add_rules("mode.debug", "mode.release")
 add_requires("raylib")
 add_requires("fmt")
 
-
 if is_mode("debug") then
     if is_mode("debug") and is_plat("linux") then
         add_defines("_GLIBCXX_ASSERTIONS")
         set_policy("build.sanitizer.undefined", true)
     end
-    set_policy("build.sanitizer.address", true)       
     set_symbols("debug")
     set_optimize("none")
 end
 
+set_symbols("debug")
 
-target("imgui",
-    {
-        kind = "static",
-        files = "third_party/imgui/*.cpp",
-        includedirs = { "third_party/imgui/", { public = true } },
-        warnings = "none",
-    })
 
-target("rlimgui", 
-    {
-        kind = "static",
-        files = "third_party/rlimgui/*.cpp",
-        includedirs = { "third_party/imgui", "third_party/rlimgui/", { public = true } },
-        packages = "raylib",
-        warnings = "none",
-    })
+target("imgui")
+    set_kind("static")
+    add_files ("third_party/imgui/*.cpp")
+    add_includedirs("third_party/imgui/", { public = true } )
+    set_warnings("none")
+
+
+target("rlimgui")
+    set_kind("static")
+    add_files("third_party/rlimgui/*.cpp")
+    add_includedirs ( "third_party/imgui", "third_party/rlimgui/", { public = true } )
+    add_packages("raylib")
+    set_warnings("none")
+
 
 target("stack_calc")
-
-
     if is_mode("debug") and is_plat("linux") then
         add_defines("_GLIBCXX_ASSERTIONS")
+    end
+
+    if is_mode("release") and is_plat("windows") then
+        add_ldflags("/SUBSYSTEM:windows", {force = true})
     end
 
     set_languages("c++20")

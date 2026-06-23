@@ -1,6 +1,6 @@
 BasedOnStyle: Webkit
-IndentWidth: 2
-ContinuationIndentWidth: 2
+IndentWidth: 4
+ContinuationIndentWidth: 4
 ColumnLimit: 0
 BreakBeforeBraces: Custom
 BraceWrapping:
