@@ -352,6 +352,18 @@ const Builtins Program::builtins = {
       } 
    },
    {
+      "abs", [](Program& P) {
+        auto const opt = P.stack.pop();
+        if (!opt) {
+            Warning{} ("Stack underflow abs");
+            return;
+        }
+        auto const result = std::visit(Map_Vistor{std::abs}, *opt);
+        if (result) P.stack.push(*result);
+        else Warning{} ("Type error abs");
+      }
+   },
+   {
       "pi", [](Program& P) {
          P.stack.push(std::numbers::pi);
       }
