@@ -7,10 +7,10 @@ auto main() -> int;
 #include <windows.h>
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, INT)
 {
-    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        freopen("CONOUT$", "w", stdout);
-        freopen("CONOUT$", "w", stderr);
-    }
-    return main();
+   if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+      freopen("CONOUT$", "w", stdout);
+      freopen("CONOUT$", "w", stderr);
+   }
+   return main();
 }
 #endif

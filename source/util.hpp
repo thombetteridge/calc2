@@ -27,95 +27,95 @@ using uint64 = uint64_t;
 
 struct Panic
 {
-    std::source_location loc;
+   std::source_location loc;
 
-    explicit Panic(std::source_location l = std::source_location::current())
-        : loc(l)
-    { }
+   explicit Panic(std::source_location l = std::source_location::current())
+       : loc(l)
+   { }
 
-    template <typename... Args>
-    [[noreturn]] void operator()(Args&&... args) const
-    {
-        fmt::print("\033[31;1mPANIC \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
-        if constexpr (sizeof...(args) > 0) {
-            (fmt::print("{}", std::forward<Args>(args)), ...);
-        }
-        fmt::print("\033[0m\n");
-        std::exit(1);
-    }
+   template <typename... Args>
+   [[noreturn]] void operator()(Args&&... args) const
+   {
+      fmt::print("\033[31;1mPANIC \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
+      if constexpr (sizeof...(args) > 0) {
+         (fmt::print("{}", std::forward<Args>(args)), ...);
+      }
+      fmt::print("\033[0m\n");
+      std::exit(1);
+   }
 };
 
 struct Todo
 {
-    std::source_location loc;
+   std::source_location loc;
 
-    explicit Todo(std::source_location l = std::source_location::current())
-        : loc(l)
-    { }
+   explicit Todo(std::source_location l = std::source_location::current())
+       : loc(l)
+   { }
 
-    template <typename... Args>
-    [[noreturn]] void operator()(Args&&... args) const
-    {
-        fmt::print(stderr, "\033[31;1mTODO \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
-        if constexpr (sizeof...(args) > 0) {
-            (fmt::print(stderr, "{}", std::forward<Args>(args)), ...);
-        }
-        fmt::print(stderr, "\033[0m\n");
-        std::exit(1);
-    }
+   template <typename... Args>
+   [[noreturn]] void operator()(Args&&... args) const
+   {
+      fmt::print(stderr, "\033[31;1mTODO \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
+      if constexpr (sizeof...(args) > 0) {
+         (fmt::print(stderr, "{}", std::forward<Args>(args)), ...);
+      }
+      fmt::print(stderr, "\033[0m\n");
+      std::exit(1);
+   }
 };
 
 struct Log
 {
-    std::source_location loc;
+   std::source_location loc;
 
-    explicit Log(std::source_location l = std::source_location::current())
-        : loc(l)
-    { }
+   explicit Log(std::source_location l = std::source_location::current())
+       : loc(l)
+   { }
 
-    template <typename... Args>
-    [[maybe_unused]] void operator()(Args&&... args) const
-    {
-        fmt::print(stderr, "\033[32;1mLOG \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
-        if constexpr (sizeof...(args) > 0) {
-            (fmt::print(stderr, "{}", std::forward<Args>(args)), ...);
-        }
-        fmt::print(stderr, "\033[0m\n");
-    }
+   template <typename... Args>
+   [[maybe_unused]] void operator()(Args&&... args) const
+   {
+      fmt::print(stderr, "\033[32;1mLOG \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
+      if constexpr (sizeof...(args) > 0) {
+         (fmt::print(stderr, "{}", std::forward<Args>(args)), ...);
+      }
+      fmt::print(stderr, "\033[0m\n");
+   }
 };
 
 struct Warning
 {
-    std::source_location loc;
+   std::source_location loc;
 
-    explicit Warning(std::source_location l = std::source_location::current())
-        : loc(l)
-    { }
+   explicit Warning(std::source_location l = std::source_location::current())
+       : loc(l)
+   { }
 
-    template <typename... Args>
-    [[maybe_unused]] void operator()(Args&&... args) const
-    {
-        fmt::print(stderr, "\033[33;1mWARNING \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
-        if constexpr (sizeof...(args) > 0) {
-            (fmt::print(stderr, "{}", std::forward<Args>(args)), ...);
-        }
-        fmt::print(stderr, "\033[0m\n");
-    }
+   template <typename... Args>
+   [[maybe_unused]] void operator()(Args&&... args) const
+   {
+      fmt::print(stderr, "\033[33;1mWARNING \033[0m{}:{}: \033[1m", loc.file_name(), loc.line());
+      if constexpr (sizeof...(args) > 0) {
+         (fmt::print(stderr, "{}", std::forward<Args>(args)), ...);
+      }
+      fmt::print(stderr, "\033[0m\n");
+   }
 };
 
 template <typename... Args>
 [[maybe_unused]] void writeln(Args&&... args)
 {
-    if constexpr (sizeof...(args) > 0) {
-        (fmt::print("{}", std::forward<Args>(args)), ...);
-    }
-    fmt::print("\n");
+   if constexpr (sizeof...(args) > 0) {
+      (fmt::print("{}", std::forward<Args>(args)), ...);
+   }
+   fmt::print("\n");
 }
 
 template <class... Ts>
 struct overload : Ts...
 {
-    using Ts::operator()...;
+   using Ts::operator()...;
 };
 template <class... Ts>
 overload(Ts...) -> overload<Ts...>;
@@ -123,15 +123,15 @@ overload(Ts...) -> overload<Ts...>;
 template <typename F>
 struct Scoped
 {
-    F cleanup;
-    explicit Scoped(F f) noexcept
-        : cleanup(std::move(f))
-    { }
-    ~Scoped() noexcept { cleanup(); }
-    Scoped(Scoped const&)         = delete;
-    Scoped(Scoped&&)              = delete;
-    auto operator=(Scoped const&) = delete;
-    auto operator=(Scoped&&)      = delete;
+   F cleanup;
+   explicit Scoped(F f) noexcept
+       : cleanup(std::move(f))
+   { }
+   ~Scoped() noexcept { cleanup(); }
+   Scoped(Scoped const&)         = delete;
+   Scoped(Scoped&&)              = delete;
+   auto operator=(Scoped const&) = delete;
+   auto operator=(Scoped&&)      = delete;
 };
 
 template <class F>
@@ -139,8 +139,8 @@ Scoped(F) -> Scoped<F>;
 
 #define STRING_CAT2(arg1, arg2) arg1##arg2
 #define STRING_CAT(arg1, arg2)  STRING_CAT2(arg1, arg2)
-#define scope_exit(code)                            \
-    auto STRING_CAT(scope_exit_, __LINE__) = Scoped \
-    {                                               \
-        [&]() -> auto { code; }                     \
-    }
+#define scope_exit(code)                           \
+   auto STRING_CAT(scope_exit_, __LINE__) = Scoped \
+   {                                               \
+      [&]() -> auto { code; }                      \
+   }
