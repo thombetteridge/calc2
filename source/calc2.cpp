@@ -128,7 +128,7 @@ struct Program
          switch (op.kind) {
 
          case Op_Kind::None:
-            Panic { }("Op_Kind NONE ??");
+            Panic {}("Op_Kind NONE ??");
             break;
 
          case Op_Kind::Val:
@@ -137,61 +137,61 @@ struct Program
          case Op_Kind::Add: {
             auto const opt = stack.pop2();
             if (!opt) {
-               Warning { }("Stack Underflow, Add");
+               Warning {}("Stack Underflow, Add");
                break;
             }
 
             auto const& [x, y] = *opt;
-            auto const result  = std::visit(Add_Vistor { }, x, y);
+            auto const result  = std::visit(Add_Vistor {}, x, y);
             if (result)
                stack.push(*result);
             else
-               Warning { }("Type error, Add");
+               Warning {}("Type error, Add");
             break;
          }
          case Op_Kind::Sub: {
             auto const opt = stack.pop2();
             if (!opt) {
-               Warning { }("Stack Underflow, Sub");
+               Warning {}("Stack Underflow, Sub");
                break;
             }
 
             auto const& [x, y] = *opt;
-            auto const result  = std::visit(Sub_Vistor { }, x, y);
+            auto const result  = std::visit(Sub_Vistor {}, x, y);
             if (result)
                stack.push(*result);
             else
-               Warning { }("Type error, Sub");
+               Warning {}("Type error, Sub");
             break;
          }
          case Op_Kind::Mul: {
             auto const opt = stack.pop2();
             if (!opt) {
-               Warning { }("Stack Underflow, Mul");
+               Warning {}("Stack Underflow, Mul");
                break;
             }
 
             auto const& [x, y] = *opt;
-            auto const result  = std::visit(Mul_Vistor { }, x, y);
+            auto const result  = std::visit(Mul_Vistor {}, x, y);
             if (result)
                stack.push(*result);
             else
-               Warning { }("Type error, Mul");
+               Warning {}("Type error, Mul");
             break;
          }
          case Op_Kind::Div: {
             auto const opt = stack.pop2();
             if (!opt) {
-               Warning { }("Stack Underflow, Div");
+               Warning {}("Stack Underflow, Div");
                break;
             }
 
             auto const& [x, y] = *opt;
-            auto const result  = std::visit(Div_Vistor { }, x, y);
+            auto const result  = std::visit(Div_Vistor {}, x, y);
             if (result)
                stack.push(*result);
             else
-               Warning { }("Type error, Div");
+               Warning {}("Type error, Div");
             break;
 
          } break;
@@ -210,7 +210,7 @@ struct Program
                stack.push(y);
             }
             else {
-               Warning { }("Stack Underflow, Swap");
+               Warning {}("Stack Underflow, Swap");
             }
             break;
          }
@@ -233,7 +233,7 @@ struct Program
                break;
             }
 
-            Warning { }("Unknown word: ", op.text);
+            Warning {}("Unknown word: ", op.text);
             break;
          }
          case Op_Kind::Var: {
@@ -242,7 +242,7 @@ struct Program
                auto const pos = s.find(delim);
                if (pos == std::string_view::npos) {
                   auto const result = s;
-                  s                 = { };
+                  s                 = {};
                   return result;
                }
 
@@ -387,7 +387,7 @@ static auto value_to_string(Value const& value) -> string
 auto run_calc(char const* input, size_t n) -> string
 {
 
-   static Program P { };
+   static Program P {};
 
    P.clear_stack();
 
@@ -399,7 +399,7 @@ auto run_calc(char const* input, size_t n) -> string
    compile(toks, codes, P.user_words);
    P.eval(codes);
 
-   std::string result { };
+   std::string result {};
    for (auto const& value : P.stack) {
       result += value_to_string(value);
       result += '\n';

@@ -21,8 +21,8 @@ static constexpr auto text_colour = IM_COL32(238, 232, 213, 255);
 auto main() -> int
 {
 
-   std::string            output_text { };
-   std::array<char, 2048> input_buffer { };
+   std::string            output_text {};
+   std::array<char, 2048> input_buffer {};
 
    SetConfigFlags(FLAG_WINDOW_TOPMOST);
    InitWindow(screen_width, screen_height, screen_title);
@@ -36,7 +36,7 @@ auto main() -> int
 
    ImGuiIO& io = ImGui::GetIO();
 
-   ImFontConfig cfg { };
+   ImFontConfig cfg {};
    cfg.OversampleH          = 2;
    cfg.OversampleV          = 2;
    cfg.PixelSnapH           = true;

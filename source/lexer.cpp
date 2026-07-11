@@ -102,7 +102,7 @@ lx_peek(Lexer& lx) -> char
    if (lx.pos + 1 < lx.src.size()) {
       return lx.src[lx.pos + 1];
    }
-   return char { };
+   return char {};
 }
 
 [[nodiscard]] static constexpr auto

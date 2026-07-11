@@ -17,8 +17,8 @@ using std::vector;
 
 struct Parse_Error
 {
-   bool             error { };
-   std::string_view text { };
+   bool             error {};
+   std::string_view text {};
 
    Parse_Error(char const* msg)
        : error(true)
@@ -41,7 +41,7 @@ unordered_map<string_view, Op_Code> const intrinsics = {
 
 static auto sv_to_double(string_view const sv) -> optional<double>
 {
-   double     value { };
+   double     value {};
    auto const result = std::from_chars(
       sv.data(),
       sv.data() + sv.size(),
@@ -60,7 +60,7 @@ void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& inde
    auto const& tok = tokens[index];
    switch (tok.kind) {
    case Tok_Kind::None:
-      Panic { }("Tok None");
+      Panic {}("Tok None");
 
    case Tok_Kind::Number: {
       auto const opt = sv_to_double(tok.text);
@@ -69,7 +69,7 @@ void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& inde
          ++index;
       }
       else
-         Warning { }("Malformed number: ", tok.text);
+         Warning {}("Malformed number: ", tok.text);
       break;
    }
 
@@ -99,12 +99,12 @@ void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& inde
       }
 
       if (tokens[index].kind != Tok_Kind::Semi) {
-         Warning { }("Missing ; for ->");
+         Warning {}("Missing ; for ->");
          ++index;
          break;
       }
 
-      string idents { };
+      string idents {};
       for (size_t j = start; j < index; ++j) {
          idents += string(tokens[j].text) + ' ';
       }
@@ -138,38 +138,38 @@ void compile_one(vector<Op_Code>& out, vector<Token> const& tokens, size_t& inde
       ++index;
       break;
    case Tok_Kind::Unknown:
-      Warning { }("Unknown token: ", tok.text);
+      Warning {}("Unknown token: ", tok.text);
       ++index;
       break;
    case Tok_Kind::Colon:
-      Warning { }("unexpected ':'");
+      Warning {}("unexpected ':'");
       ++index;
       break;
    case Tok_Kind::Semi:
-      Warning { }("unexpected ';'");
+      Warning {}("unexpected ';'");
       ++index;
       break;
    case Tok_Kind::LBracket:
-      Warning { }("TODO: LBracket");
+      Warning {}("TODO: LBracket");
       ++index;
       break;
    case Tok_Kind::RBracket:
-      Warning { }("TODO: RParen");
+      Warning {}("TODO: RParen");
       ++index;
       break;
    case Tok_Kind::LParen:
       parse_infix(out, tokens, index);
       break;
    case Tok_Kind::RParen:
-      Warning { }("unexpected ')' ");
+      Warning {}("unexpected ')' ");
       ++index;
       break;
    case Tok_Kind::LBrace:
-      Warning { }("TODO: LBrace");
+      Warning {}("TODO: LBrace");
       ++index;
       break;
    case Tok_Kind::RBrace:
-      Warning { }("TODO: RBrace");
+      Warning {}("TODO: RBrace");
       ++index;
       break;
    case Tok_Kind::Eof:
@@ -236,7 +236,7 @@ void compile(
       if (tok.kind == Tok_Kind::Colon) {
 
          if (index + 1 < tokens.size() && tokens[index + 1].kind != Tok_Kind::Word) {
-            Warning { }("missing word name after ':' ");
+            Warning {}("missing word name after ':' ");
             break;
          }
 
@@ -251,7 +251,7 @@ void compile(
          }
 
          if (index >= tokens.size() || tokens[index].kind != Tok_Kind::Semi) {
-            Warning { }("missing ';' after definition of", name);
+            Warning {}("missing ';' after definition of", name);
             break;
          }
 
@@ -316,16 +316,16 @@ static auto emit_binary_op(vector<Op_Code>& out, Token const& tok) -> Parse_Erro
    switch (tok.kind) {
    case Tok_Kind::Plus:
       out.emplace_back(Op_Code { .kind = Op_Kind::Add });
-      return { };
+      return {};
    case Tok_Kind::Minus:
       out.emplace_back(Op_Code { .kind = Op_Kind::Sub });
-      return { };
+      return {};
    case Tok_Kind::Star:
       out.emplace_back(Op_Code { .kind = Op_Kind::Mul });
-      return { };
+      return {};
    case Tok_Kind::Slash:
       out.emplace_back(Op_Code { .kind = Op_Kind::Div });
-      return { };
+      return {};
    default:
       return { "expected binary operator" };
    }
@@ -361,7 +361,7 @@ static auto parse_expr(vector<Op_Code>& out, vector<Token> const& tokens, size_t
       }
    }
 
-   return { };
+   return {};
 }
 
 auto parse_primary(vector<Op_Code>& out, vector<Token> const& tokens, size_t& index) -> Parse_Error
@@ -377,10 +377,10 @@ auto parse_primary(vector<Op_Code>& out, vector<Token> const& tokens, size_t& in
       if (opt)
          out.emplace_back(Op_Code { .kind = Op_Kind::Val, .value = opt.value() });
       else
-         Warning { }("Malformed Number");
+         Warning {}("Malformed Number");
 
       ++index;
-      return { };
+      return {};
    }
 
    if (tok.kind == Tok_Kind::Word) {
@@ -392,7 +392,7 @@ auto parse_primary(vector<Op_Code>& out, vector<Token> const& tokens, size_t& in
       out.emplace_back(Op_Code { .kind = Op_Kind::Word, .text = string(tok.text) });
 
       ++index;
-      return { };
+      return {};
    }
 
    if (tok.kind == Tok_Kind::LParen) {
@@ -406,7 +406,7 @@ auto parse_primary(vector<Op_Code>& out, vector<Token> const& tokens, size_t& in
       }
 
       ++index; // consume ')'
-      return { };
+      return {};
    }
 
    return { "expected expression" };
@@ -414,10 +414,10 @@ auto parse_primary(vector<Op_Code>& out, vector<Token> const& tokens, size_t& in
 
 void parse_infix(vector<Op_Code>& out, vector<Token> const& tokens, size_t& index)
 {
-   vector<Op_Code> ops { };
+   vector<Op_Code> ops {};
 
    if (index >= tokens.size() || tokens[index].kind != Tok_Kind::LParen) {
-      Warning { }("parse_infix: expected '('");
+      Warning {}("parse_infix: expected '('");
       return;
    }
 
@@ -425,12 +425,12 @@ void parse_infix(vector<Op_Code>& out, vector<Token> const& tokens, size_t& inde
 
    auto const err = parse_expr(ops, tokens, index, 0);
    if (err) {
-      Warning { }("infix parse error: ", err.text);
+      Warning {}("infix parse error: ", err.text);
       return;
    }
 
    if (index >= tokens.size() || tokens[index].kind != Tok_Kind::RParen) {
-      Warning { }("infix parse error: expected ')'");
+      Warning {}("infix parse error: expected ')'");
       return;
    }
 

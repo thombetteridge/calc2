@@ -25,8 +25,8 @@ enum class Op_Kind : uint8
 struct Op_Code
 {
    Op_Kind     kind;
-   double      value { };
-   std::string text { };
+   double      value {};
+   std::string text {};
 };
 
 using Value = std::variant<double>;
