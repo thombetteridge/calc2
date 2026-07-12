@@ -291,88 +291,97 @@ struct Map_Vistor
    }
 };
 
-// clang-format off
-const Builtins Program::builtins = {
-  {
-    "sin", [](Program& P) {
-      auto const opt = P.stack.pop();
-      if (!opt) {
-        Warning{}("Stack underflow sin");
-        return;
-      }
+static void calc_sin(Program& P)
+{
+   auto const opt = P.stack.pop();
+   if (!opt) {
+      Warning {}("Stack underflow sin");
+      return;
+   }
 
-    auto const result = std::visit(Map_Vistor{std::sin}, *opt);
-    if (result) 
+   auto const result = std::visit(Map_Vistor { std::sin }, *opt);
+   if (result)
       P.stack.push(*result);
-    else 
-      Warning{}("Type error sin");
-    }
-  },
-  {
-    "cos", [](Program& P) {
-        auto const opt = P.stack.pop();
-        if (!opt) {
-          Warning{} ("Stack underflow cos");
-          return;
-        }
+   else
+      Warning {}("Type error sin");
+}
 
-        auto const result = std::visit(Map_Vistor{std::cos}, *opt);
-        if (result) 
-          P.stack.push(*result);
-        else 
-        Warning{} ("Type error cos");
-      }
-   },
-   {
-    "tan", [](Program& P) {
-      auto const opt = P.stack.pop();
-        if (!opt) {
-          Warning{} ("Stack underflow tan");
-          return;
-        }
+static void calc_cos(Program& P)
+{
+   auto const opt = P.stack.pop();
+   if (!opt) {
+      Warning {}("Stack underflow cos");
+      return;
+   }
 
-        auto const result = std::visit(Map_Vistor{std::tan}, *opt);         
-        if (result)
-          P.stack.push(*result);
-        else 
-          Warning{}("Type error tan");
-      }
-   },
-   {
-     "sqrt", [](Program& P) {
-         auto const opt = P.stack.pop();
-         if (!opt) {
-            Warning{} ("Stack underflow sqrt");
-            return;
-         }
+   auto const result = std::visit(Map_Vistor { std::cos }, *opt);
+   if (result)
+      P.stack.push(*result);
+   else
+      Warning {}("Type error cos");
+}
 
-         auto const result = std::visit(Map_Vistor{std::sqrt}, *opt);
-         if (result) P.stack.push(*result);
-         else Warning{} ("Type error sqrt");
-      } 
-   },
-   {
-      "abs", [](Program& P) {
-        auto const opt = P.stack.pop();
-        if (!opt) {
-            Warning{} ("Stack underflow abs");
-            return;
-        }
-        auto const result = std::visit(Map_Vistor{std::abs}, *opt);
-        if (result) P.stack.push(*result);
-        else Warning{} ("Type error abs");
-      }
-   },
-   {
-      "pi", [](Program& P) {
-         P.stack.push(std::numbers::pi);
-      }
-   },
+static void calc_tan(Program& P)
+{
+   auto const opt = P.stack.pop();
+   if (!opt) {
+      Warning {}("Stack underflow tan");
+      return;
+   }
+
+   auto const result = std::visit(Map_Vistor { std::tan }, *opt);
+   if (result)
+      P.stack.push(*result);
+   else
+      Warning {}("Type error tan");
+}
+
+static void calc_sqrt(Program& P)
+{
+   auto const opt = P.stack.pop();
+   if (!opt) {
+      Warning {}("Stack underflow sqrt");
+      return;
+   }
+
+   auto const result = std::visit(Map_Vistor { std::sqrt }, *opt);
+   if (result)
+      P.stack.push(*result);
+   else
+      Warning {}("Type error sqrt");
+}
+
+static void calc_abs(Program& P)
+{
+   auto const opt = P.stack.pop();
+   if (!opt) {
+      Warning {}("Stack underflow abs");
+      return;
+   }
+   auto const result = std::visit(Map_Vistor { std::abs }, *opt);
+   if (result)
+      P.stack.push(*result);
+   else
+      Warning {}("Type error abs");
+}
+
+static void calc_pi(Program& P)
+{
+   P.stack.push(std::numbers::pi);
+}
+
+const Builtins Program::builtins = {
+   { "sin", calc_sin },
+   { "cos", calc_cos },
+   { "tan", calc_tan },
+   {"sqrt", calc_sqrt },
+   {"abs", calc_abs }, {"pi", calc_pi },
 };
 
 static auto value_to_string(Value const& value) -> string
 {
-   return std::visit(overload {
+   return std::visit(
+      overload {
       [](double x) {
          static constexpr double precision = 1e12;
          return fmt::format("{:.12g}", std::round(x*precision) / precision);
@@ -382,7 +391,6 @@ static auto value_to_string(Value const& value) -> string
       }
    }, value);
 }
-// clang-format on
 
 auto run_calc(char const* input, size_t n) -> string
 {
