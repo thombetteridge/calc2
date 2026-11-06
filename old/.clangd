@@ -1,0 +1,44 @@
+CompileFlags:
+  Add: [
+
+]
+
+Diagnostics:
+  ClangTidy:
+    # FastCheckFilter: None
+    FastCheckFilter: Loose
+    Add: [
+      modernize-*,
+      performance-*,
+      bugprone-*,
+      clang-analyzer-*,
+      portability-*,
+      misc-unused-parameters,
+      cppcoreguidelines-*,
+
+      misc-const-correctness,
+      misc-definitions-in-headers,
+      misc-misplaced-const,
+      misc-redundant-expression,
+      misc-static-assert,
+      misc-throw-by-value-catch-by-reference,
+      misc-include-cleaner,
+
+      readability-implicit-bool-conversion,
+      readability-redundant-control-flow,
+      readability-simplify-boolean-expr
+    ]
+    Remove: [
+      readability-identifier-length,
+      readability-magic-numbers,
+      cppcoreguidelines-avoid-magic-numbers,
+      cppcoreguidelines-pro-type-vararg,
+
+      cppcoreguidelines-avoid-c-arrays,
+      cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+      cppcoreguidelines-pro-bounds-constant-array-index,
+      cppcoreguidelines-avoid-do-while,
+    ]
+
+Index:
+  Background: Build

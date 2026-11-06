@@ -1,44 +1,50 @@
-CompileFlags:
-  Add: [
+# CompileFlags:
+#   Add:
+#     - -std=c++23
+#     - -Wall
+#     - -Wextra
+#     - -Wconversion
+#     - -Wdouble-promotion
+#     - -Wno-unused-parameter
+#     - -Wno-unused-function
+#     - -Wno-sign-conversion
+#     - -D_CRT_SECURE_NO_WARNINGS
 
-]
+# Diagnostics:
+#   ClangTidy:
+#     FastCheckFilter: None
+#     # FastCheckFilter: Loose
+#     Add: [
+#       modernize-*,
+#       performance-*,
+#       bugprone-*,
+#       clang-analyzer-*,
+#       portability-*,
+#       misc-unused-parameters,
+#       cppcoreguidelines-*,
 
-Diagnostics:
-  ClangTidy:
-    # FastCheckFilter: None
-    FastCheckFilter: Loose
-    Add: [
-      modernize-*,
-      performance-*,
-      bugprone-*,
-      clang-analyzer-*,
-      portability-*,
-      misc-unused-parameters,
-      cppcoreguidelines-*,
+#       misc-const-correctness,
+#       misc-definitions-in-headers,
+#       misc-misplaced-const,
+#       misc-redundant-expression,
+#       misc-static-assert,
+#       misc-throw-by-value-catch-by-reference,
+#       misc-include-cleaner,
 
-      misc-const-correctness,
-      misc-definitions-in-headers,
-      misc-misplaced-const,
-      misc-redundant-expression,
-      misc-static-assert,
-      misc-throw-by-value-catch-by-reference,
-      misc-include-cleaner,
+#       readability-implicit-bool-conversion,
+#       readability-redundant-control-flow,
+#       readability-simplify-boolean-expr
+#     ]
+#     Remove: [
+#       readability-identifier-length,
+#       readability-magic-numbers,
+#       cppcoreguidelines-avoid-magic-numbers,
+#       cppcoreguidelines-pro-type-vararg,
 
-      readability-implicit-bool-conversion,
-      readability-redundant-control-flow,
-      readability-simplify-boolean-expr
-    ]
-    Remove: [
-      readability-identifier-length,
-      readability-magic-numbers,
-      cppcoreguidelines-avoid-magic-numbers,
-      cppcoreguidelines-pro-type-vararg,
-
-      cppcoreguidelines-avoid-c-arrays,
-      cppcoreguidelines-pro-bounds-array-to-pointer-decay,
-      cppcoreguidelines-pro-bounds-constant-array-index,
-      cppcoreguidelines-avoid-do-while,
-    ]
+#       cppcoreguidelines-avoid-c-arrays,
+#       cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+#       cppcoreguidelines-pro-bounds-constant-array-index,
+#     ]
 
 Index:
   Background: Build

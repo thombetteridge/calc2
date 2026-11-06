@@ -1,55 +1,15 @@
 ---@diagnostic disable: undefined-global
 
+
 add_rules("mode.debug", "mode.release")
-add_requires("raylib")
-add_requires("fmt")
-
-if is_mode("debug") then
-    if is_mode("debug") and is_plat("linux") then
-        add_defines("_GLIBCXX_ASSERTIONS")
-        set_policy("build.sanitizer.undefined", true)
-    end
-    set_symbols("debug")
-    set_optimize("none")
-end
-
-set_symbols("debug")
-
-
-target("imgui")
-    set_kind("static")
-    add_files ("third_party/imgui/*.cpp")
-    add_includedirs("third_party/imgui/", { public = true } )
-    set_warnings("none")
-
-
-target("rlimgui")
-    set_kind("static")
-    add_files("third_party/rlimgui/*.cpp")
-    add_includedirs ( "third_party/imgui", "third_party/rlimgui/", { public = true } )
-    add_packages("raylib")
-    set_warnings("none")
-
+set_languages("c++23")
+set_warnings("all", "extra")
 
 target("stack_calc")
-    if is_mode("debug") and is_plat("linux") then
-        add_defines("_GLIBCXX_ASSERTIONS")
-    end
-
-    if is_mode("release") and is_plat("windows") then
-        add_ldflags("/SUBSYSTEM:windows", {force = true})
-    end
-
-    set_languages("c++20")
-    set_warnings("all", "extra", "pedantic")
     set_kind("binary")
 
-    set_pcxxheader("source/pch/pch_stdc++.hpp")
+    set_pcxxheader("src/pch.hpp")
 
-    add_files("source/*.cpp")
-    add_sysincludedirs("include")
+    add_files("src/*.cpp")
+    add_sysincludedirs("ext")
 
-    add_packages("raylib")
-    add_packages("fmt")
-    add_deps("imgui")
-    add_deps("rlimgui")
