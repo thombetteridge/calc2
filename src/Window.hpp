@@ -174,6 +174,7 @@ struct Window {
             None = 0,
             KeyDown,
             KeyUp,
+            KeyChar,
             MouseDown,
             MouseUp,
             MouseMove,
@@ -216,13 +217,15 @@ struct Window {
     int width {};
     int height {};
 
-    Point    prev_mouse {};
-    Point    current_mouse {};
-    float    scroll {};
-    Key      key_pressed {};
-    Key      key_released {};
-    char     key_char {};
-    bool     got_input {};
+    Point  prev_mouse {};
+    Point  current_mouse {};
+    float  scroll {};
+    Key    key_pressed {};
+    Key    key_released {};
+    char   key_char {};
+    bool   got_input {};
+    KeyMod mods {};
+
     uint32_t mod_keys {};
     uint32_t event_head {};
     uint32_t event_count {};

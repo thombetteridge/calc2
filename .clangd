@@ -1,14 +1,15 @@
-# CompileFlags:
-#   Add:
-#     - -std=c++23
-#     - -Wall
-#     - -Wextra
-#     - -Wconversion
-#     - -Wdouble-promotion
-#     - -Wno-unused-parameter
-#     - -Wno-unused-function
-#     - -Wno-sign-conversion
-#     - -D_CRT_SECURE_NO_WARNINGS
+CompileFlags:
+  Add:
+    - -std=c++23
+    - -Wall
+    - -Wextra
+    - -Wconversion
+    - -Wdouble-promotion
+    - -Wno-unused-parameter
+    - -Wno-unused-function
+    - -Wno-sign-conversion
+    - -D_CRT_SECURE_NO_WARNINGS
+    - -I../ext
 
 # Diagnostics:
 #   ClangTidy:

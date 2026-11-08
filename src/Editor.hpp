@@ -21,14 +21,14 @@ struct Editor {
     size_t cursor;
     size_t anchor;
 
-
     bool text_changed;
     bool dirty;
 
-    bool edit_key(Window::Key key, Window::KeyMod mod);
+    bool edit_key(Window::Key key, char c, Window::KeyMod mod);
     void render(Canvas & cvs, Font const & font);
 
-    void insert(char const * text, size_t len);
+    void insert_text(char const * text, size_t len);
+    void insert_char(char c);
     void replace(size_t begin, size_t end, char const * text, size_t text_len);
     void compute_lines();
     // void set_desired_col();
@@ -37,16 +37,17 @@ struct Editor {
 #include <algorithm>
 
 
-bool Editor::edit_key(Window::Key key, Window::KeyMod mod)
+bool Editor::edit_key(Window::Key key, char c, Window::KeyMod mod)
 {
+    unused(mod);
+
     if (key == Window::Key::Enter or key == Window::Key::Return) {
-        char nl = '\n';
-        insert(&nl, 1);
+        insert_char('\n');
         return true;
     }
 
     if (as<int>(key) >= 32 && as<int>(key) < 127) {
-        insert((cast<char *>(&key)), 1);
+        insert_char(c);
     }
 
     return true;
@@ -69,7 +70,14 @@ void Editor::compute_lines()
     lines.push_back({.begin = begin, .end = chars.size()});
 }
 
-void Editor::insert(char const * text, size_t len)
+void Editor::insert_char(char c)
+{
+    chars.insert(chars.begin() + cursor, c);
+    cursor += 1;
+    compute_lines();
+}
+
+void Editor::insert_text(char const * text, size_t len)
 {
     let begin = std::min(anchor, cursor);
     let end   = std::max(anchor, cursor);
@@ -91,8 +99,8 @@ void Editor::replace(size_t begin, size_t end, char const * text, size_t text_le
     if (begin == end && text_len == 0)
         return;
 
-    let pos = chars.erase(chars.begin() + begin, chars.begin() + end);
-    chars.insert(pos, text, text + text_len);
+    chars.erase(chars.begin() + begin, chars.begin() + end);
+    chars.insert(chars.begin() + begin, text, text + text_len);
     std::erase(chars, '\r');
 
     compute_lines();
@@ -105,7 +113,7 @@ void Editor::replace(size_t begin, size_t end, char const * text, size_t text_le
 void Editor::render(Canvas & cvs, Font const & font)
 {
     for (size_t i = 0; i < lines.size(); i += 1) {
-        int len = as<int>(lines[i].end - lines[i].begin);
+        let len = as<int>(lines[i].end - lines[i].begin);
         cvs.draw_text(font, chars.data() + lines[i].begin, len, 10, as<int>(as<float>(i) * (font.glyph_height + 1.f)), colour_black);
     }
 }

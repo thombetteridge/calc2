@@ -51,16 +51,6 @@ modifier_bit(RGFW_key key)
 }
 
 
-char printable_char(RGFW_key key, uint8_t sym)
-{
-    if (as<uint8_t>(key) < 32 || as<uint8_t>(key) > 126)
-        return 0;
-    if (sym < 32 || sym > 126)
-        return 0;
-    return as<uint8_t>(sym);
-}
-
-
 Window * window_from(RGFW_window * w)
 {
     return cast<Window *>(RGFW_window_getUserPtr(w));
@@ -82,17 +72,15 @@ void keyfunc(RGFW_keyEvent const * e)
     Window * win = window_from(e->win);
 
     RGFW_key    mapped = RGFW_physicalToMappedKey(e->value);
-    Window::Key key    = as<Window::Key>(mapped);
+    Window::Key key    = as<Window::Key>(e->value);
 
     if (e->state) {
         win->mod_keys |= modifier_bit(mapped);
         win->key_pressed = key;
-        win->key_char    = printable_char(mapped, e->value);
         win->push_event(
             Window::Event {
                 .kind   = Window::Event::Kind::KeyDown,
                 .key    = key,
-                .ch     = win->key_char,
                 .repeat = as<bool>(e->repeat),
             });
     }
@@ -103,6 +91,18 @@ void keyfunc(RGFW_keyEvent const * e)
         win->push_event(Window::Event {.kind = Window::Event::Kind::KeyUp, .key = key});
     }
 }
+
+void keycharfunc(RGFW_event const * e)
+{
+    Window * win = window_from(e->common.win);
+
+    win->key_char = as<char>(e->keyChar.value);
+    win->push_event({
+        .kind = Window::Event::Kind::KeyChar,
+        .ch   = win->key_char,
+    });
+}
+
 void mousebuttonfunc(RGFW_event const * e)
 {
     Window * win = window_from(e->common.win);
@@ -164,6 +164,8 @@ void Window::push_event(Window::Event ev)
     ev.mod.ctrl  = (this->mod_keys & (MOD_KEY_CTRL_L | MOD_KEY_CTRL_R)) != 0;
     ev.mod.alt   = (this->mod_keys & (MOD_KEY_ALT_L | MOD_KEY_ALT_R)) != 0;
 
+    mods = ev.mod;
+
     this->got_input = true;
 
 
@@ -217,6 +219,7 @@ Window::Window(char const * title, int w, int h)
     RGFW_setEventCallback(RGFW_windowFocusOut, windowfocusfunc);
     RGFW_setEventCallback(RGFW_keyPressed, (RGFW_genericFunc)keyfunc);
     RGFW_setEventCallback(RGFW_keyReleased, (RGFW_genericFunc)keyfunc);
+    RGFW_setEventCallback(RGFW_keyChar, keycharfunc);
     RGFW_setEventCallback(RGFW_mouseButtonPressed, mousebuttonfunc);
     RGFW_setEventCallback(RGFW_mouseButtonReleased, mousebuttonfunc);
 

@@ -1,6 +1,4 @@
 
-#include <string_view>
-
 #include "Canvas.hpp"
 #include "Editor.hpp"
 #include "Font.hpp"
@@ -10,6 +8,9 @@
 
 int main()
 {
+
+    trace {"Test"};
+
     rgfw_init("cal", 0);
     cleanup(rgfw_deinit());
 
@@ -19,10 +20,8 @@ int main()
     Font font {20};
 
     Canvas canvas(w.window_width(), w.window_height());
-    canvas.clear(colour_white);
 
-    // constexpr std::string_view hello = "Hello World";
-    // canvas.draw_text(font, hello.data(), hello.size(), 10, 200, colour_black);
+    canvas.clear(colour_white);
 
     while (w.is_running()) {
         w.wait_for_event(1000);
@@ -31,14 +30,14 @@ int main()
         auto const key = w.get_pressed_key();
 
         if (key != Window::Key::Nil) {
-            ed.edit_key(key, {});
+            ed.edit_key(key, w.get_last_key_char(), w.mods);
         }
 
         canvas.clear(colour_white);
 
         ed.render(canvas, font);
 
-        w.render(canvas.buffer.data(), canvas.width, canvas.height, 0, 0);
+        w.render(canvas.buffer.get(), canvas.width, canvas.height, 0, 0);
 
         w.present();
     };

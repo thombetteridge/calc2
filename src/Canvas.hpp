@@ -1,8 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
-
+#include <memory>
 
 #include "tom.hpp"
 
@@ -11,11 +10,12 @@ struct Font;
 struct Canvas {
     using Colour = uint32_t;
 
-    std::vector<Colour> buffer;
-    int                 width {};
-    int                 height {};
+    std::unique_ptr<Colour[]> buffer = nullptr;
+    int                       width  = 0;
+    int                       height = 0;
 
     Canvas(int w, int h);
+
     void resize(int w, int h);
 
     void clear(Colour colour);

@@ -1,13 +1,13 @@
 #include "Font.hpp"
 
 #include "tom.hpp"
+#include <cstdint>
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
 
-#include "embedded_font.hpp"
-auto const ttf_data = JetBrainsMono_Regular_ttf;
-
+#include "fira_font.h"
+auto const ttf_data = fira_mono_ttf_compressed_data;
 
 Font::Font(float pixel_height)
 {

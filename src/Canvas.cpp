@@ -1,6 +1,5 @@
 #include "Canvas.hpp"
 
-#include <algorithm>
 #include <cstdint>
 
 #include "Font.hpp"
@@ -10,8 +9,9 @@
 Canvas::Canvas(int w, int h)
     : width(w), height(h)
 {
-    buffer.resize(width * height);
+    buffer = std::make_unique<Colour[]>(w * h);
 }
+
 
 void Canvas::draw_pixel(int x, int y, Colour colour)
 {
@@ -24,7 +24,8 @@ void Canvas::draw_pixel(int x, int y, Colour colour)
 
 void Canvas::clear(Colour colour)
 {
-    std::ranges::fill(buffer, colour);
+    for (int i = 0; i < width * height; i += 1)
+        buffer[i] = colour;
 }
 
 void Canvas::draw_rect(int x, int y, int w, int h, Colour colour)
@@ -82,13 +83,34 @@ void Canvas::draw_line(int x0, int y0, int x1, int y1, Colour colour)
     }
 }
 
+auto sq = [](auto x) { return x * x; };
+
 void Canvas::draw_circle(int cx, int cy, int radius, Colour colour)
 {
-    panic("TODO");
+    int x0 = cx - radius;
+    int x1 = cx + radius;
+
+    int y0 = cy - radius;
+    int y1 = cy + radius;
+
+    for (int y = y0; y < y1; y++) {
+        for (int x = x0; x < x1; x++) {
+            int dx = x - cx;
+            int dy = y - cy;
+            if (sq(dx) + sq(dy) <= sq(radius)) {
+                draw_pixel(x, y, colour);
+            }
+        }
+    }
 }
+
 
 void Canvas::draw_circle_line(int cx, int cy, int radius, Colour colour)
 {
+    (void)(cx);
+    (void)(cy);
+    (void)(radius);
+    (void)(colour);
     panic("TODO");
 }
 

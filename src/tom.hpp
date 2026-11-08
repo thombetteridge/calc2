@@ -1,13 +1,29 @@
 #pragma once
 
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #include <print>
 #include <source_location>
 #include <utility>
 
-#define let auto const
+#define let       auto const
+#define unused(x) (void)(x)
+
+// basic types
+
+using u8  = uint8_t;
+using u16 = uint16_t;
+using u32 = uint32_t;
+using u64 = uint64_t;
+
+using i8  = int8_t;
+using i16 = int16_t;
+using i32 = int32_t;
+using i64 = int64_t;
+
 
 template <typename Out, typename In>
 inline constexpr auto
@@ -23,12 +39,17 @@ cast(In in) -> Out
     return reinterpret_cast<Out>(in);
 }
 
+template <typename T>
+void memZero(T * ptr, size_t count = 1)
+{
+    memset(ptr, 0, sizeof(T) * count);
+}
 
 namespace detail {
 template <typename... Args>
 void log(char const * color, char const * label, std::source_location loc, Args &&... args)
 {
-    std::print(stderr, "\033[{}m{} \033[0m{}:{}: \033[1m", color, label, loc.file_name(), loc.line());
+    std::print(stderr, "\033[{}m {}\033[0m {}:{}:\033[1m ", color, label, loc.file_name(), loc.line());
     (std::print(stderr, "{}", std::forward<Args>(args)), ...);
     std::print(stderr, "\033[0m\n");
 }
