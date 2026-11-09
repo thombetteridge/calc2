@@ -11,11 +11,10 @@ int main()
 
     trace {"Test"};
 
-    rgfw_init("cal", 0);
-    cleanup(rgfw_deinit());
-
     Window w {"cal", 512, 512};
+
     Editor ed {};
+    ed.compute_lines();
 
     Font font {20};
 
@@ -25,17 +24,18 @@ int main()
 
     while (w.is_running()) {
         w.wait_for_event(1000);
-        w.poll();
 
-        auto const key = w.get_pressed_key();
+        if (not w.poll())
+            continue;
 
-        if (key != Window::Key::Nil) {
-            ed.edit_key(key, w.get_last_key_char(), w.mods);
+        Window::Event ev;
+        while (w.next_event(&ev)) {
+            ed.handle_event(&ev);
         }
 
         canvas.clear(colour_white);
 
-        ed.render(canvas, font);
+        ed.render(canvas, font, 3, 3, canvas.width - 3, canvas.height - 3);
 
         w.render(canvas.buffer.get(), canvas.width, canvas.height, 0, 0);
 

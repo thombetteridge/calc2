@@ -39,6 +39,13 @@ cast(In in) -> Out
     return reinterpret_cast<Out>(in);
 }
 
+inline auto
+fromEnum(auto in) -> auto
+{
+    return std::to_underlying(in);
+}
+
+
 template <typename T>
 void memZero(T * ptr, size_t count = 1)
 {

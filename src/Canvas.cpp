@@ -107,11 +107,43 @@ void Canvas::draw_circle(int cx, int cy, int radius, Colour colour)
 
 void Canvas::draw_circle_line(int cx, int cy, int radius, Colour colour)
 {
-    (void)(cx);
-    (void)(cy);
-    (void)(radius);
-    (void)(colour);
-    panic("TODO");
+    // Source:
+    // https://www.geeksforgeeks.org/bresenhams-circle-drawing-algorithm/
+
+    int x = 0;
+    int y = radius;
+    int d = 3 - 2 * radius;
+
+
+    draw_pixel(cx + x, cy + y, colour);
+    draw_pixel(cx - x, cy + y, colour);
+    draw_pixel(cx + x, cy - y, colour);
+    draw_pixel(cx - x, cy - y, colour);
+    draw_pixel(cx + y, cy + x, colour);
+    draw_pixel(cx - y, cy + x, colour);
+    draw_pixel(cx + y, cy - x, colour);
+    draw_pixel(cx - y, cy - x, colour);
+
+    while (y >= x) {
+        x += 1;
+
+        if (d > 0) {
+            y -= 1;
+            d += 4 * (x - y) + 10;
+        }
+        else {
+            d += 4 * x + 6;
+        }
+
+        draw_pixel(cx + x, cy + y, colour);
+        draw_pixel(cx - x, cy + y, colour);
+        draw_pixel(cx + x, cy - y, colour);
+        draw_pixel(cx - x, cy - y, colour);
+        draw_pixel(cx + y, cy + x, colour);
+        draw_pixel(cx - y, cy + x, colour);
+        draw_pixel(cx + y, cy - x, colour);
+        draw_pixel(cx - y, cy - x, colour);
+    }
 }
 
 

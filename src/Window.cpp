@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include <algorithm>
+#include <memory>
 
 
 #include "tom.hpp"
@@ -195,8 +196,15 @@ void Window::push_event(Window::Event ev)
 void rgfw_init(char const * s, uint8_t f) { RGFW_init(s, f); }
 void rgfw_deinit() { RGFW_deinit(); }
 
+static bool once = true;
+
 Window::Window(char const * title, int w, int h)
 {
+    if (once) {
+        once = false;
+        rgfw_init(title, 0);
+    }
+
     width  = w;
     height = h;
 
@@ -436,4 +444,53 @@ bool Window::is_key_released(Window::Key key)
 bool Window::is_key_down(Window::Key key)
 {
     return RGFW_isKeyDown(as<RGFW_key>(key));
+}
+
+
+char const * Window::read_clipboard(size_t * length)
+{
+
+    RGFW_dataTransfer const * data = RGFW_readClipboard(RGFW_dataText);
+
+    size_t       size = data->length;
+    char const * text = data->data;
+
+    size_t len = 0;
+    if (text != NULL) {
+        while ((size_t)len < size && text[len] != '\0')
+            len += 1;
+    }
+
+    *length = len;
+    return len > 0 ? text : NULL;
+}
+
+void Window::write_clipboard(char const * text, size_t length)
+{
+    if (text == NULL || length == 0)
+        return;
+
+    auto copy = std::make_unique<char[]>(length + 1);
+    if (copy == NULL)
+        return;
+
+    memcpy(copy.get(), text, length);
+    copy[length] = '\0';
+
+    RGFW_dataTransfer data;
+    data.data   = copy.get();
+    data.length = length + 1;
+
+    RGFW_writeClipboard(&data);
+}
+
+bool Window::next_event(Window::Event * ev)
+{
+    if (event_count == 0)
+        return false;
+
+    *ev        = events[event_head];
+    event_head = (event_head + 1) % Window::event_capacity;
+    event_count -= 1;
+    return true;
 }

@@ -280,8 +280,8 @@ struct Window {
 
     // Lengths never include a null terminator, and `text` does not need one.
     // TODO
-    // char const * p_read_clipboard(size_t * length);
-    // void         p_write_clipboard(char const * text, uint32_t length);
+    static char const * read_clipboard(size_t * length);
+    static void         write_clipboard(char const * text, size_t length);
 
     //--------------------------------------------------------------------------------------------------//
     // Internal Functions
